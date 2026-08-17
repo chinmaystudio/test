@@ -1,0 +1,82 @@
+export const events = [
+  {
+    id: 'praxis-2026',
+    name: 'PRAXIS 2026',
+    type: 'Flagship Techfest',
+    description: 'Annual State-Level Intercollegiate Technical & Non-Technical Festival featuring competitive coding, project displays, tech quizzes, esports, and innovation challenges.',
+    footfall: '1000+',
+    color: '#00e5ff',
+    featured: true,
+    subEvents: ['CodeWars', 'WebXplore', 'Project Rise', 'Einstein\'s Hammer', 'Gaming Arena', 'Shark Tank'],
+  },
+  {
+    id: 'codewars',
+    name: 'CodeWars',
+    type: 'Competitive Coding',
+    description: 'Multi-round algorithmic challenge testing Data Structures, Logic, and Problem Solving across C++, Java, Python.',
+    color: '#ff6d00',
+    rounds: ['Rapid MCQs & Time Complexity', 'Algorithmic Elimination', 'Final Speed Battle'],
+  },
+  {
+    id: 'webxplore',
+    name: 'WebXplore',
+    type: 'Web Development Hackathon',
+    description: 'Rapid prototyping and full-stack web application development hackathon judged on responsiveness, UX design, and functional backends.',
+    color: '#aa00ff',
+  },
+  {
+    id: 'project-rise',
+    name: 'Project Rise',
+    type: 'Project Exhibition',
+    description: 'Showcase for innovative capstone and mini-projects addressing real-world domain problems in Healthcare, IoT, AI, and Fintech.',
+    color: '#00e676',
+  },
+  {
+    id: 'einsteins-hammer',
+    name: 'Einstein\'s Hammer',
+    type: 'Tech Quiz',
+    description: 'High-energy buzzer-based technical, sci-tech, and logical reasoning trivia contest.',
+    color: '#ffd600',
+  },
+  {
+    id: 'gaming-arena',
+    name: 'Gaming & E-Sports Arena',
+    type: 'E-Sports Tournament',
+    description: 'LAN and mobile gaming tournament featuring Valorant, BGMI, and Call of Duty Mobile.',
+    color: '#f44336',
+  },
+  {
+    id: 'shark-tank',
+    name: 'Shark Tank',
+    type: 'Startup Pitch',
+    description: 'Startup ideation and product pitch competition before industry mentors and angel evaluators.',
+    color: '#e040fb',
+  },
+  {
+    id: 'blind-coding',
+    name: 'Blind Coding & Bug Hunt',
+    type: 'Fun Challenge',
+    description: 'Coding with screens turned off and rapid bug debugging in broken code snippets.',
+    color: '#76ff03',
+  },
+  {
+    id: 'hackmatrix',
+    name: 'HackMatrix',
+    type: 'Hackathon',
+    description: '24-hour offline overnight national hackathon tackling real-world problem statements.',
+    color: '#00bcd4',
+  },
+  {
+    id: 'induction',
+    name: 'ITSA Induction Ceremony',
+    type: 'Ceremony',
+    description: 'Formal investiture ceremony passing the mantle to the new committee, felicitating academic toppers.',
+    color: '#7c4dff',
+  },
+];
+
+export const eventTimeline = [
+  { year: 'Past', events: ['PRAXIS 2024', 'PRAXIS 2025', 'HackMatrix'] },
+  { year: 'Current', events: ['PRAXIS 2026'] },
+  { year: 'Upcoming', events: ['CodeWars Season 3', 'Tech Bootcamp Series'] },
+];
