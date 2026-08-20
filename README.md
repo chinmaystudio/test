@@ -185,3 +185,23 @@ python scripts_demo_continual_learning.py
 ### GPU Acceleration
 
 The `FaceDetector` and `FaceEmbedder` automatically detect and prioritize `CUDAExecutionProvider` and `TensorrtExecutionProvider` via ONNX Runtime if available, falling back to `CPUExecutionProvider`. For 90+ identity group classrooms, GPU acceleration is strongly recommended.
+
+## 1000-Identity Benchmark
+
+The system includes a rigorous 1000-identity benchmark pipeline using the Labeled Faces in the Wild (LFW) dataset. It enforces strict data splitting (enrollment vs. validation vs. test), open-set unknown rejection, and continual learning evaluation.
+
+To run the complete benchmark suite:
+
+```bash
+python scripts_prepare_1000_dataset.py
+python scripts_enroll_1000.py
+python scripts_calibrate_threshold.py
+python scripts_generate_classroom.py
+python scripts_benchmark_1000.py
+python scripts_continual_1000_test.py
+python scripts_generate_report.py
+```
+
+### Real-World Limitation
+
+**IMPORTANT:** A 100% result on a synthetic/composite benchmark does NOT prove 100% accuracy in real classrooms. The benchmark accuracy measures the theoretical capability of the model on controlled data. Real-world validation using consented participants and properly collected data is mandatory before production deployment.
