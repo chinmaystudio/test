@@ -7,6 +7,7 @@ from core.detector import FaceDetector
 from core.embedder import FaceEmbedder
 from core.attendance_engine import AttendanceEngine
 from db.database import LocalDatabase
+from db.profiles import ProfileStore
 from models.schemas import StudentEnrollment, EnrollmentResponse, FrameResponse
 
 app = FastAPI(title="NeuroClass Attendance API")
@@ -24,6 +25,7 @@ db = LocalDatabase()
 detector = FaceDetector()
 embedder = FaceEmbedder()
 engine = AttendanceEngine(db)
+profile_store = ProfileStore()
 
 @app.post("/students/enroll", response_model=EnrollmentResponse)
 async def enroll_student(
@@ -76,3 +78,35 @@ async def process_frame(classroom_id: str = Form(...), file: UploadFile = File(.
         timestamp=time.time(),
         results=results
     )
+
+@app.get("/students/{student_id}/profile")
+async def get_profile_summary(student_id: str):
+    """Return safe profile statistics without exposing biometric embeddings."""
+    profile = profile_store.get_profile(student_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return {
+        "student_id": profile.student_id,
+        "classroom_id": profile.classroom_id,
+        "profile_version": profile.profile_version,
+        "enrollment_observations": len(profile.enrollment_embeddings),
+        "verified_observations": len(profile.verified_embeddings),
+        "last_updated": profile.last_updated,
+    }
+
+@app.post("/students/{student_id}/profile/rollback")
+async def rollback_profile(student_id: str, target_version: int):
+    if not profile_store.rollback_profile(student_id, target_version):
+        raise HTTPException(status_code=404, detail="Target profile version not found")
+    return {"success": True, "student_id": student_id, "rolled_back_to": target_version}
+
+@app.post("/students/{student_id}/profile/reset")
+async def reset_profile(student_id: str):
+    profile = profile_store.get_profile(student_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    profile.verified_embeddings = []
+    profile.profile_version += 1
+    profile.last_updated = time.time()
+    profile_store.save_profile(profile, reason="teacher_reset_adaptive_observations")
+    return {"success": True, "student_id": student_id, "profile_version": profile.profile_version}

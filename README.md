@@ -160,3 +160,28 @@ This is an MVP foundation rather than a claim of perfect accuracy. Performance m
 [2]: https://github.com/deepinsight/insightface "InsightFace GitHub repository"
 [3]: https://github.com/facebookresearch/faiss "FAISS similarity-search library"
 [4]: https://github.com/pgvector/pgvector "pgvector PostgreSQL extension"
+
+## Continual Learning & Self-Updating Profiles
+
+NeuroClass now features a safe continual learning architecture that builds a personalized identity profile for each student without modifying the underlying ArcFace neural network weights.
+
+### Architecture
+
+1. **Frozen Model:** The ArcFace model remains completely frozen. We do not fine-tune weights dynamically, avoiding catastrophic forgetting.
+2. **Identity Profiles:** Each student has a persistent profile containing enrollment embeddings and high-confidence verified observations.
+3. **Prototype Adaptation:** Recognition matches against a dynamic prototype (e.g., centroid) calculated from the profile's diverse embeddings.
+4. **Learning Queue:** High-confidence, temporally stable observations are queued.
+5. **Safety Filters:** Before an observation is added to the profile, it must pass outlier detection (to prevent poisoning) and novelty detection (to ensure it adds value).
+6. **Versioning & Rollback:** Every profile update creates a new version, allowing teachers to roll back if a misidentification corrupts a profile.
+
+### Running the Learning Demo
+
+You can simulate the complete lifecycle (enrollment, redundant observation, outlier spoofing, profile update, and rollback) by running:
+
+```bash
+python scripts_demo_continual_learning.py
+```
+
+### GPU Acceleration
+
+The `FaceDetector` and `FaceEmbedder` automatically detect and prioritize `CUDAExecutionProvider` and `TensorrtExecutionProvider` via ONNX Runtime if available, falling back to `CPUExecutionProvider`. For 90+ identity group classrooms, GPU acceleration is strongly recommended.

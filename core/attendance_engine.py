@@ -56,6 +56,10 @@ class AttendanceEngine:
             if temporal.confirmed and decision.state is MatchState.HIGH_CONFIDENCE:
                 self.confirmed.add(f"{classroom_id}:{lecture_id}:{temporal.student_id}")
 
+                # Continual learning queue hook (simulated integration)
+                # In production, this would call ProfileManager.queue_observation asynchronously
+                # using the margin (decision.similarity - second_best_similarity) and the embedding.
+
             results.append({
                 "track_id": track_id,
                 "student_id": temporal.student_id or decision.student_id,

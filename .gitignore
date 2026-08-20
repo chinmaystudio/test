@@ -33,3 +33,6 @@ metadata.json
 dataset/
 *.jpg
 *.png
+*.db
+*.bin
+*.json
