@@ -2,6 +2,7 @@ import faiss
 import numpy as np
 import json
 import os
+from uuid import UUID
 
 class LocalDatabase:
     """
@@ -55,10 +56,17 @@ class LocalDatabase:
                 
                 if classroom_id and meta.get('classroom_id') != classroom_id:
                     continue
-                    
+
+                # Legacy local indexes may contain aliases from benchmark runs.
+                # Never return those as canonical attendance identities.
+                try:
+                    canonical_student_id = str(UUID(str(meta.get('student_id'))))
+                except (TypeError, ValueError, AttributeError):
+                    continue
+
                 results.append({
                     'similarity': float(distances[q_idx][i]),
-                    'student_id': meta.get('student_id'),
+                    'student_id': canonical_student_id,
                     'name': meta.get('name'),
                     'classroom_id': meta.get('classroom_id')
                 })

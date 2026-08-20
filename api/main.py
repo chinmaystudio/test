@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import cv2
 import numpy as np
 import time
+from uuid import UUID
 from core.detector import FaceDetector
 from core.embedder import FaceEmbedder
 from core.attendance_engine import AttendanceEngine
@@ -55,11 +56,14 @@ from api.auth import verify_service_token
 @app.post("/ai/v1/enrollment")
 async def enroll_student(
     _ = Depends(verify_service_token),
-    student_id: str = Form(...),
+    student_id: UUID = Form(...),
     classroom_id: str = Form(...),
     registration_session_id: str = Form(...),
     files: list[UploadFile] = File(...)
 ):
+    # Only public.students.id is accepted; aliases such as STU001 are rejected
+    # before any biometric data is processed.
+    canonical_student_id = str(student_id)
     accepted_samples = 0
     rejected_samples = 0
     rejection_reasons = []
@@ -99,7 +103,7 @@ async def enroll_student(
         emb = embedder.generate_embedding(img, face)
         if emb is not None:
             db.add_embedding(emb, {
-                "student_id": student_id,
+                "student_id": canonical_student_id,
                 "classroom_id": classroom_id,
                 "registration_session_id": registration_session_id
             })
@@ -113,7 +117,7 @@ async def enroll_student(
         "accepted_samples": accepted_samples,
         "rejected_samples": rejected_samples,
         "rejection_reasons": list(set(rejection_reasons)),
-        "profile_id": f"prof_{student_id}",
+        "profile_id": f"prof_{canonical_student_id}",
         "profile_version": 1
     }
 
