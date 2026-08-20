@@ -47,9 +47,21 @@ By default, Hugging Face Spaces resets the disk when the container restarts. To 
 
 ---
 
-## Option 2: Render (Free Web Service)
+## Option 2: Render (Python Web Service)
 
-Render offers a free Web Service tier (512MB RAM, 0.1 CPU). **Warning:** 512MB RAM is likely too small to load the InsightFace ONNX models into memory, which typically require ~1GB+ RAM. If you use Render, the build will likely fail with an Out Of Memory (OOM) error.
+I have added a `render.yaml` blueprint to the repository. This automatically configures the Python environment, startup command, and a **Persistent Disk** (`/app/data`) so your FAISS index and SQLite profiles are not lost when the server restarts.
+
+### How to deploy on Render:
+1. Go to your [Render Dashboard](https://dashboard.render.com/).
+2. Click **New** -> **Blueprint**.
+3. Connect this GitHub repository.
+4. Render will read the `render.yaml` file and automatically provision the `neuroclass-api` web service.
+
+**⚠️ CRITICAL WARNING FOR RENDER FREE TIER:**
+Render's Free Web Service provides only **512MB RAM**. The InsightFace ArcFace models (buffalo_l) typically require ~1GB+ RAM to load the ONNX weights into memory, plus extra memory for processing 30 faces in a batch.
+* If you use the Free tier, the deployment will likely fail with an **Out Of Memory (OOM)** error or get killed by Render during inference.
+* To run this on Render successfully, you will likely need to upgrade the service to the **Starter tier ($7/month)** which provides 512MB-1GB RAM (which may still be tight), or the Standard tier.
+* The Free tier also spins down after 15 minutes of inactivity, meaning the first request will take 30+ seconds to wake up the server and load the heavy AI models.
 
 ---
 

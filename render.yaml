@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: neuroclass-api
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn api.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    # For a 100-student InsightFace deployment, 512MB RAM (Free tier) is often insufficient.
+    # If OOM errors occur, Render will kill the process. You may need the $7/mo Starter tier.
+    plan: free
+    disk:
+      name: data
+      mountPath: /app/data
+      sizeGB: 1

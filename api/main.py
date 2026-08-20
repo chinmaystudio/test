@@ -12,6 +12,10 @@ from models.schemas import StudentEnrollment, EnrollmentResponse, FrameResponse
 
 app = FastAPI(title="NeuroClass Attendance API")
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "service": "neuroclass-api"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

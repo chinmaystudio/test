@@ -23,9 +23,11 @@ class IdentityProfile:
 
 
 class ProfileStore:
-    def __init__(self, path: str = "profiles.db"):
+    def __init__(self, path: str = "data/profiles.db"):
+        import os
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         self.path = Path(path)
-        self.connection = sqlite3.connect(self.path)
+        self.connection = sqlite3.connect(self.path, check_same_thread=False)
         self.connection.execute("""
             CREATE TABLE IF NOT EXISTS profiles (
                 student_id TEXT PRIMARY KEY,

@@ -7,7 +7,9 @@ class LocalDatabase:
     """
     FAISS + JSON metadata for local development.
     """
-    def __init__(self, index_path="faiss_index.bin", meta_path="metadata.json"):
+    def __init__(self, index_path="data/faiss_index.bin", meta_path="data/metadata.json"):
+        import os
+        os.makedirs(os.path.dirname(index_path), exist_ok=True)
         self.index_path = index_path
         self.meta_path = meta_path
         self.dimension = 512 # ArcFace embedding size
