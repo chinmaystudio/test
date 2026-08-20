@@ -1,17 +1,14 @@
 import cv2
 import numpy as np
-from insightface.app import FaceAnalysis
-
-import onnxruntime as ort
+from core.model_manager import model_manager
 
 class FaceDetector:
     def __init__(self, det_size=(640, 640)):
-        providers = ['CUDAExecutionProvider', 'TensorrtExecutionProvider', 'CPUExecutionProvider']
-        available_providers = ort.get_available_providers()
-        selected_providers = [p for p in providers if p in available_providers]
+        self.det_size = det_size
 
-        self.app = FaceAnalysis(name='buffalo_l', allowed_modules=['detection', 'landmark_2d_106'], providers=selected_providers)
-        self.app.prepare(ctx_id=0, det_size=det_size)
+    @property
+    def app(self):
+        return model_manager.get_app(self.det_size)
 
     def detect(self, img):
         """

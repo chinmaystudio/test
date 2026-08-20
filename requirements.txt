@@ -7,15 +7,6 @@ onnxruntime
 numpy
 faiss-cpu
 pydantic
-python-dotenv
-psycopg2-binary
-sqlalchemy
-pgvector
-filterpy
-lap
 scikit-learn
-matplotlib
 pytest
-
-# Optional production database driver
-psycopg[binary]
+psutil

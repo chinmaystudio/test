@@ -57,11 +57,17 @@ I have added a `render.yaml` blueprint to the repository. This automatically con
 3. Connect this GitHub repository.
 4. Render will read the `render.yaml` file and automatically provision the `neuroclass-api` web service.
 
-**⚠️ CRITICAL WARNING FOR RENDER FREE TIER:**
-Render's Free Web Service provides only **512MB RAM**. The InsightFace ArcFace models (buffalo_l) typically require ~1GB+ RAM to load the ONNX weights into memory, plus extra memory for processing 30 faces in a batch.
-* If you use the Free tier, the deployment will likely fail with an **Out Of Memory (OOM)** error or get killed by Render during inference.
-* To run this on Render successfully, you will likely need to upgrade the service to the **Starter tier ($7/month)** which provides 512MB-1GB RAM (which may still be tight), or the Standard tier.
-* The Free tier also spins down after 15 minutes of inactivity, meaning the first request will take 30+ seconds to wake up the server and load the heavy AI models.
+**Render Free configuration:**
+Render's Free Web Service provides only **512MB RAM**. The service therefore defaults to the smaller `buffalo_s` model and a single CPU worker. Do not set `MODEL_NAME=buffalo_l` on Render Free.
+
+Set these Render environment variables:
+```env
+MODEL_NAME=buffalo_s
+ONNX_PROVIDER=CPUExecutionProvider
+MEMORY_OPTIMIZATION=true
+```
+
+The service loads one `FaceAnalysis` instance lazily and reports the selected model and actual ONNX provider through `/health`. The Free tier can still spin down after inactivity, so the first request after a sleep may include model initialization time. Run `python scripts_verify_startup.py` locally and review `python scripts_benchmark_models.py` before deployment.
 
 ---
 

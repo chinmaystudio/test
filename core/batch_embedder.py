@@ -1,26 +1,30 @@
 import onnxruntime as ort
 import numpy as np
 from typing import List
-from insightface.app import FaceAnalysis
+from core.model_manager import model_manager
 
 
 class BatchFaceEmbedder:
     """ArcFace embedding service with a real batch API and provider reporting."""
 
     def __init__(self, det_size=(640, 640)):
-        providers = ["TensorrtExecutionProvider", "CUDAExecutionProvider", "CPUExecutionProvider"]
-        available_providers = ort.get_available_providers()
-        selected_providers = [p for p in providers if p in available_providers]
-        if not selected_providers:
-            raise RuntimeError("No ONNX Runtime execution provider is available")
-        self.providers = selected_providers
-        self.app = FaceAnalysis(name="buffalo_l", allowed_modules=["detection", "recognition"], providers=selected_providers)
-        self.app.prepare(ctx_id=0, det_size=det_size)
-        self.model = self.app.models["recognition"]
+        self.det_size = det_size
+
+    @property
+    def app(self):
+        return model_manager.get_app(self.det_size)
+
+    @property
+    def model(self):
+        return self.app.models["recognition"]
 
     @property
     def provider(self) -> str:
-        return self.providers[0]
+        # Fallback to checking the active provider from the model manager's session
+        env_provider = __import__("os").environ.get("ONNX_PROVIDER")
+        if env_provider:
+            return env_provider
+        return "CPUExecutionProvider"
 
     def generate_embeddings_batch(self, face_crops: List[np.ndarray], batch_size: int = 16) -> List[List[float]]:
         """Generate normalized ArcFace embeddings for pre-aligned BGR face crops.

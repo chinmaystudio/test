@@ -7,8 +7,14 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
-    # For a 100-student InsightFace deployment, 512MB RAM (Free tier) is often insufficient.
-    # If OOM errors occur, Render will kill the process. You may need the $7/mo Starter tier.
+      - key: MODEL_NAME
+        value: buffalo_s
+      - key: ONNX_PROVIDER
+        value: CPUExecutionProvider
+      - key: MEMORY_OPTIMIZATION
+        value: "true"
+    # Render Free tier provides 512MB RAM. buffalo_s is used by default to fit in memory.
+    # buffalo_l remains available for local/GPU deployments only.
     plan: free
     disk:
       name: data

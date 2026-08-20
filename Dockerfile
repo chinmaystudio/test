@@ -13,5 +13,11 @@ COPY . .
 
 RUN mkdir -p /app/data && chmod 777 /app/data
 
+# Memory optimization defaults for Render Free
+ENV MODEL_NAME=buffalo_s \
+    ONNX_PROVIDER=CPUExecutionProvider \
+    MEMORY_OPTIMIZATION=true
+
 EXPOSE 8000
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run uvicorn with a single worker to avoid memory duplication
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

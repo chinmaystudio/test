@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import cv2
 import numpy as np
@@ -13,22 +14,37 @@ from models.schemas import StudentEnrollment, EnrollmentResponse, FrameResponse
 
 app = FastAPI(title="NeuroClass Attendance API")
 
+import os
+from core.model_manager import model_manager
+
 @app.get("/health")
 async def health_check():
-    # Attempt to report the actual ONNX provider used by the embedder
-    provider = "CPUExecutionProvider"
-    if hasattr(engine, 'batch_embedder'):
-        provider = engine.batch_embedder.provider
-    elif hasattr(embedder, 'app') and hasattr(embedder.app, 'providers') and embedder.app.providers:
-        provider = embedder.app.providers[0]
+    # Attempt to load the model to verify memory fits on startup
+    try:
+        model_manager.get_app()
+        model_name = model_manager._current_model_name
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "unhealthy",
+                "error": str(e),
+                "model": os.environ.get("MODEL_NAME", "buffalo_s"),
+                "provider": model_manager.provider,
+                "memory_optimization": os.environ.get("MEMORY_OPTIMIZATION", "false")
+            }
+        )
+
+    provider = model_manager.provider
 
     return {
         "status": "healthy",
-        "model": "buffalo_l",
+        "model": model_name,
         "provider": provider,
         "database": "connected",
         "faiss": "loaded" if db.index.ntotal > 0 else "empty",
-        "profiles": db.index.ntotal
+        "profiles": db.index.ntotal,
+        "memory_optimization": os.environ.get("MEMORY_OPTIMIZATION", "false")
     }
 
 app.add_middleware(

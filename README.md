@@ -9,7 +9,7 @@ This repository implements a local-first, trainable-by-enrollment facial-recogni
 | Decision | MVP implementation | Production direction |
 |---|---|---|
 | Detection | InsightFace RetinaFace through `FaceAnalysis` | GPU-backed InsightFace service with tuned detector size |
-| Recognition | ArcFace embeddings from the `buffalo_l` model | Versioned model artifacts and offline threshold calibration |
+| Recognition | ArcFace embeddings from the configurable `MODEL_NAME` model (`buffalo_s` by default) | Versioned model artifacts and offline threshold calibration |
 | Search | FAISS inner-product index over normalized 512-dimensional vectors | PostgreSQL + pgvector adapter in `db/postgres.py` |
 | Group tracking | Lightweight IoU tracker with stable track IDs | ByteTrack or DeepSORT when camera motion and crowd density require it |
 | Temporal verification | Sliding window, minimum observations, score stability | Session-level track lifecycle and calibrated quality weighting |
@@ -146,9 +146,48 @@ The script reports true/false positives and negatives, false-acceptance rate, fa
 
 The current local MVP intentionally does not implement authentication and must not be exposed publicly. Before connecting it to NeuroClass, add teacher authentication, classroom-level authorization, TLS, rate limiting, server-side validation, audit logs, encrypted embedding storage, deletion of biometric profiles, retention limits, and a consent/notice workflow appropriate to the deployment jurisdiction. Do not return embeddings through public APIs. Store only the minimum metadata required for attendance and keep review actions auditable.
 
-## Docker
+## Deployment & Memory Optimization
 
-A basic container definition is included for Linux deployment. GPU runtime configuration and model-cache persistence should be added for production deployments. PostgreSQL + pgvector is an optional next step; the local FAISS store is the simplest development path.
+A Dockerfile and `render.yaml` are included for Linux deployment.
+
+### Render Free Tier (512MB RAM)
+The default Render Free tier is strictly limited to 512MB RAM. Loading the standard InsightFace `buffalo_l` model will cause Out-Of-Memory (OOM) crashes during startup.
+
+To deploy successfully on Render Free, you **must** use the `buffalo_s` model. This is configured automatically in the provided `Dockerfile` and `render.yaml` via environment variables:
+
+```env
+MODEL_NAME=buffalo_s
+ONNX_PROVIDER=CPUExecutionProvider
+MEMORY_OPTIMIZATION=true
+```
+
+**Important:** `buffalo_s` has a smaller memory footprint but may exhibit slightly lower recognition accuracy and cross-face separation compared to `buffalo_l`. Use `python scripts_benchmark_models.py` to compare their performance on your specific dataset.
+
+### Production / GPU Deployment
+For production deployments requiring maximum accuracy (using `buffalo_l`), use a local or GPU-capable deployment with sufficient memory. Do not use `buffalo_l` on Render Free.
+
+To use `buffalo_l`, use a GPU-capable environment and set:
+```env
+MODEL_NAME=buffalo_l
+ONNX_PROVIDER=CUDAExecutionProvider
+MEMORY_OPTIMIZATION=false
+```
+
+The standard `onnxruntime` dependency is CPU-oriented. A GPU deployment should use the matching ONNX Runtime GPU package and CUDA/TensorRT runtime supplied by the host. `buffalo_l` is not recommended for Render Free because its memory footprint can exceed the 512MB limit. PostgreSQL + pgvector is an optional next step; the local FAISS store is the simplest development path.
+
+### Verification and Benchmarking
+
+Run the lightweight startup check before deploying:
+```bash
+python scripts_verify_startup.py
+```
+It starts the service with the Render Free configuration, verifies `/health` returns HTTP 200, confirms the model loaded, and checks that the actual ONNX provider is reported.
+
+Compare the free-tier model and the larger model on the existing classroom validation composites:
+```bash
+python scripts_benchmark_models.py --output benchmark_models.json
+```
+The benchmark reports recognition accuracy, false-acceptance rate, false-rejection rate, inference latency, model-load time, and RSS memory usage. It loads the models sequentially and does not claim equivalent accuracy between `buffalo_s` and `buffalo_l`.
 
 ## Limitations
 
