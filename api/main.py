@@ -14,7 +14,11 @@ app = FastAPI(title="NeuroClass Attendance API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict to neuro-class.vercel.app
+    allow_origins=[
+        "https://neuro-class.vercel.app", 
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
