@@ -205,3 +205,21 @@ python scripts_generate_report.py
 ### Real-World Limitation
 
 **IMPORTANT:** A 100% result on a synthetic/composite benchmark does NOT prove 100% accuracy in real classrooms. The benchmark accuracy measures the theoretical capability of the model on controlled data. Real-world validation using consented participants and properly collected data is mandatory before production deployment.
+
+## High-Density Classroom Optimization (70+ Faces)
+
+To process up to 70 students per frame without exhausting compute resources, this engine now implements:
+
+1. **Tracker-Driven Embedding Throttling**: The system tracks faces across frames. Once a track achieves high-confidence recognition and temporal stability, the engine skips the expensive embedding inference for that track in subsequent frames, reusing the verified identity state.
+2. **True Batch Inference**: When multiple new or unstable tracks require embedding in the same frame, the crops are aligned, stacked, and passed through the ArcFace neural network as a single N-dimensional batch (`core/batch_embedder.py`).
+3. **Batched Vector Search**: The FAISS index now performs simultaneous queries for all new embeddings in the batch, rather than querying sequentially.
+
+### 70-Face Stress Test
+
+A dedicated script generates a 70-student composite and measures the raw inference latency (bypassing the temporal throttle to measure worst-case throughput):
+
+```bash
+python scripts_benchmark_70_faces.py
+```
+
+*Note: Processing 70 faces simultaneously from scratch takes ~8 seconds per frame on a pure CPU. For real-time 70-face attendance, you must run this on hardware supporting `CUDAExecutionProvider` or `TensorrtExecutionProvider`, which the engine will automatically detect and use.*

@@ -59,7 +59,7 @@ def main():
     test_dir = Path("dataset_1000/test")
     unknown_dir = Path("dataset_1000/unknown")
     out_dir = Path("dataset_1000/classrooms")
-    out_dir.mkdir(exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
     
     reg_pool = [d for d in test_dir.iterdir() if d.is_dir()]
     unk_pool = [d for d in unknown_dir.iterdir() if d.is_dir()]
@@ -67,6 +67,7 @@ def main():
     scenarios = [
         (30, 5, "scenario_A"),
         (50, 10, "scenario_B"),
+        (70, 0, "scenario_70_faces"),
         (100, 20, "scenario_C")
     ]
     
