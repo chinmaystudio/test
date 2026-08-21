@@ -10,7 +10,7 @@ class SimpleTracker:
         self.next_id = 1
         self.iou_threshold = iou_threshold
 
-    def _iou(self, box1, box2):
+    def _iou(self, box1, box2, area2):
         x1 = max(box1[0], box2[0])
         y1 = max(box1[1], box2[1])
         x2 = min(box1[2], box2[2])
@@ -18,7 +18,6 @@ class SimpleTracker:
         
         intersection = max(0, x2 - x1) * max(0, y2 - y1)
         area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
-        area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
         union = area1 + area2 - intersection
         
         return intersection / union if union > 0 else 0
@@ -30,6 +29,7 @@ class SimpleTracker:
         """
         updated_tracks = []
         unmatched_dets = list(detections)
+        det_areas = [(det.bbox[2] - det.bbox[0]) * (det.bbox[3] - det.bbox[1]) for det in unmatched_dets]
         
         # Match existing tracks
         for track_id, track_info in list(self.tracks.items()):
@@ -37,13 +37,14 @@ class SimpleTracker:
             best_iou = self.iou_threshold
             
             for i, det in enumerate(unmatched_dets):
-                iou = self._iou(track_info['bbox'], det.bbox)
+                iou = self._iou(track_info['bbox'], det.bbox, det_areas[i])
                 if iou > best_iou:
                     best_iou = iou
                     best_det_idx = i
                     
             if best_det_idx >= 0:
                 det = unmatched_dets.pop(best_det_idx)
+                det_areas.pop(best_det_idx)
                 self.tracks[track_id]['bbox'] = det.bbox
                 self.tracks[track_id]['hits'] += 1
                 updated_tracks.append((track_id, det))

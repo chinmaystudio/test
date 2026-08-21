@@ -63,14 +63,15 @@ class AttendanceEngine:
         # For a 70-face frame, we only need to re-embed if the track is new, 
         # hasn't reached temporal stability, or a refresh interval has passed.
         
+        import cv2
+        try:
+            from insightface.utils.face_align import norm_crop
+        except Exception:
+            norm_crop = None
+
         for track_id, face in tracked_faces:
-            # Check if we can skip embedding this frame for this track
-            skip_embedding = False
-            if track_id in self.track_identities:
-                # If we already confirmed this identity and it's stable, we can skip
-                # expensive embedding on every frame. (In production, use a frame counter).
-                skip_embedding = True
-                
+            skip_embedding = track_id in self.track_identities
+
             quality = self.quality.check(frame, face)
             if not quality.accepted:
                 results.append({"track_id": track_id, "student_id": None, "name": None,
@@ -78,27 +79,8 @@ class AttendanceEngine:
                                 "verification": "REVIEW", "reason": quality.reason,
                                 "bbox": face.bbox.tolist()})
                 continue
-                
-            # Use tracker bounding box for crop
-            x1, y1, x2, y2 = [int(v) for v in face.bbox]
-            h, w = frame.shape[:2]
-            x1, y1, x2, y2 = max(0, x1), max(0, y1), min(w, x2), min(h, y2)
-            crop = frame[y1:y2, x1:x2]
-            if crop.size == 0:
-                continue
-                
-            import cv2
-            try:
-                from insightface.utils.face_align import norm_crop
-                if getattr(face, 'kps', None) is not None:
-                    crop_resized = norm_crop(frame, face.kps, image_size=112)
-                else:
-                    crop_resized = cv2.resize(crop, (112, 112))
-            except Exception:
-                crop_resized = cv2.resize(crop, (112, 112))
-            
+
             if skip_embedding:
-                # Use cached identity state
                 student_id, name, conf = self.track_identities[track_id]
                 results.append({
                     "track_id": track_id,
@@ -112,17 +94,30 @@ class AttendanceEngine:
                     "already_confirmed": True,
                     "bbox": face.bbox.tolist(),
                 })
+                continue
+
+            x1, y1, x2, y2 = [int(v) for v in face.bbox]
+            h, w = frame.shape[:2]
+            x1, y1, x2, y2 = max(0, x1), max(0, y1), min(w, x2), min(h, y2)
+            crop = frame[y1:y2, x1:x2]
+            if crop.size == 0:
+                continue
+
+            if norm_crop and getattr(face, 'kps', None) is not None:
+                crop_resized = norm_crop(frame, face.kps, image_size=112)
             else:
-                valid_faces.append(face)
-                valid_crops.append(crop_resized)
-                valid_track_ids.append(track_id)
+                crop_resized = cv2.resize(crop, (112, 112), interpolation=cv2.INTER_CUBIC)
+
+            valid_faces.append(face)
+            valid_crops.append(crop_resized)
+            valid_track_ids.append(track_id)
             
         if not valid_crops:
             return results
             
         # Batch inference (much faster for 70 faces)
-        from core.batch_embedder import BatchFaceEmbedder
         if not hasattr(self, 'batch_embedder'):
+            from core.batch_embedder import BatchFaceEmbedder
             self.batch_embedder = BatchFaceEmbedder()
             
         embeddings = self.batch_embedder.generate_embeddings_batch(valid_crops, batch_size=32)

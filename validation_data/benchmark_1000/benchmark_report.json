@@ -13,8 +13,8 @@
   "enrollment_failures": [
     "Stan_Heath"
   ],
-  "rss_before_mb": 137.421875,
-  "rss_after_index_mb": 232.12890625,
+  "rss_before_mb": 137.34765625,
+  "rss_after_index_mb": 231.8203125,
   "threshold_selected_for_zero_far": {
     "threshold": 0.58,
     "true_positive": 783,
@@ -424,8 +424,8 @@
       "balanced_accuracy": 0.7005
     }
   ],
-  "average_inference_latency_ms": 44.42109005890199,
-  "p95_inference_latency_ms": 57.01694762683473,
+  "average_inference_latency_ms": 43.23447133709643,
+  "p95_inference_latency_ms": 56.24928592005744,
   "detected_capture_count": 1676,
   "capture_count": 1680
 }
