@@ -7,9 +7,11 @@ import time
 from uuid import UUID
 from core.detector import FaceDetector
 from core.embedder import FaceEmbedder
+from core.batch_embedder import BatchFaceEmbedder
 from core.attendance_engine import AttendanceEngine
 from db.database import LocalDatabase
 from db.profiles import ProfileStore
+from learning.prototype import calculate_prototype
 from models.schemas import StudentEnrollment, EnrollmentResponse, FrameResponse
 
 app = FastAPI(title="NeuroClass Attendance API")
@@ -63,6 +65,7 @@ app.add_middleware(
 db = LocalDatabase()
 detector = FaceDetector()
 embedder = FaceEmbedder()
+batch_embedder = BatchFaceEmbedder()
 engine = AttendanceEngine(db)
 profile_store = ProfileStore()
 active_sessions = {}
@@ -83,6 +86,7 @@ async def enroll_student(
     accepted_samples = 0
     rejected_samples = 0
     rejection_reasons = []
+    accepted_embeddings = []
 
     for file in files:
         contents = await file.read()
@@ -116,17 +120,33 @@ async def enroll_student(
                 rejection_reasons.append("LOW_QUALITY")
             continue
 
-        emb = embedder.generate_embedding(img, face)
+        try:
+            from insightface.utils.face_align import norm_crop
+            crop = norm_crop(img, face.kps, image_size=112) if getattr(face, "kps", None) is not None else None
+        except Exception:
+            crop = None
+        if crop is None:
+            x1, y1, x2, y2 = [int(value) for value in face.bbox]
+            crop = img[max(0, y1):max(y1 + 1, y2), max(0, x1):max(x1 + 1, x2)]
+            if crop.size:
+                crop = cv2.resize(crop, (112, 112), interpolation=cv2.INTER_CUBIC)
+        emb = batch_embedder.generate_embeddings_batch([crop], batch_size=1)[0] if crop is not None and crop.size else None
         if emb is not None:
-            db.add_embedding(emb, {
-                "student_id": canonical_student_id,
-                "classroom_id": classroom_id,
-                "registration_session_id": registration_session_id
-            })
+            accepted_embeddings.append(emb.tolist() if hasattr(emb, "tolist") else list(emb))
             accepted_samples += 1
         else:
             rejected_samples += 1
             rejection_reasons.append("EMBEDDING_FAILED")
+
+    if accepted_embeddings:
+        prototype = calculate_prototype(accepted_embeddings, method="centroid")
+        db.add_embedding(prototype, {
+            "student_id": canonical_student_id,
+            "classroom_id": classroom_id,
+            "registration_session_id": registration_session_id,
+            "sample_count": accepted_samples,
+            "profile_type": "centroid"
+        })
 
     return {
         "success": accepted_samples > 0,

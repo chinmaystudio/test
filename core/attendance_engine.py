@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Dict, Set
+import os
 
 from core.detector import FaceDetector
 from core.embedder import FaceEmbedder
@@ -15,8 +16,12 @@ from db.database import LocalDatabase
 class AttendanceEngine:
     """Stateful group-attendance processor for one classroom session."""
 
-    def __init__(self, db: LocalDatabase, similarity_threshold: float = 0.55,
-                 review_threshold: float = 0.45, min_observations: int = 5):
+    def __init__(self, db: LocalDatabase, similarity_threshold: float | None = None,
+                 review_threshold: float | None = None, min_observations: int = 5):
+        calibrated_auto = float(os.environ.get("ATTENDANCE_AUTO_THRESHOLD", "0.45"))
+        calibrated_review = float(os.environ.get("ATTENDANCE_REVIEW_THRESHOLD", "0.35"))
+        similarity_threshold = calibrated_auto if similarity_threshold is None else similarity_threshold
+        review_threshold = calibrated_review if review_threshold is None else review_threshold
         self.detector = FaceDetector()
         self.embedder = FaceEmbedder()
         self.quality = FaceQualityChecker()
