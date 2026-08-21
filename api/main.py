@@ -288,6 +288,38 @@ async def process_frame(
         results=results
     )
 
+@app.post("/ai/v1/proctoring/exam-frame")
+async def process_exam_frame(
+    classroom_id: str = Form(...),
+    session_id: str = Form(...),
+    target_student_id: UUID = Form(...),
+    file: UploadFile = File(...),
+    _ = Depends(verify_service_token)
+):
+    """Verify an exam candidate using the already-enrolled classroom profile.
+
+    The browser sends only an image to this service through the portal backend;
+    embeddings remain in the server-side FAISS/Supabase pipeline.
+    """
+    contents = await file.read()
+    nparr = np.frombuffer(contents, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if img is None:
+        raise HTTPException(status_code=400, detail="Invalid image")
+    results = engine.process_frame(img, classroom_id, lecture_id=session_id, capture_mode="manual")
+    target = str(target_student_id)
+    candidate = next((item for item in results if str(item.get("student_id")) == target), None)
+    if not candidate:
+        return {"verified": False, "state": "UNKNOWN_FACE", "reason": "Registered student was not matched", "similarity": 0.0}
+    status = str(candidate.get("status", "REVIEW"))
+    return {
+        "verified": status == "PRESENT",
+        "state": "VERIFIED" if status == "PRESENT" else "REVIEW",
+        "reason": None if status == "PRESENT" else "Face match requires review",
+        "similarity": float(candidate.get("similarity", 0.0)),
+        "confidence": candidate.get("confidence"),
+    }
+
 @app.post("/ai/v1/attendance/finish")
 async def finish_attendance_session(
     session_id: str = Form(...),
