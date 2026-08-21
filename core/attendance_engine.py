@@ -17,7 +17,7 @@ class AttendanceEngine:
     """Stateful group-attendance processor for one classroom session."""
 
     def __init__(self, db: LocalDatabase, similarity_threshold: float | None = None,
-                 review_threshold: float | None = None, min_observations: int = 5):
+                 review_threshold: float | None = None, min_observations: int = 3):
         calibrated_auto = float(os.environ.get("ATTENDANCE_AUTO_THRESHOLD", "0.45"))
         calibrated_review = float(os.environ.get("ATTENDANCE_REVIEW_THRESHOLD", "0.35"))
         similarity_threshold = calibrated_auto if similarity_threshold is None else similarity_threshold
