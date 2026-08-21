@@ -17,7 +17,23 @@ from models.schemas import StudentEnrollment, EnrollmentResponse, FrameResponse
 app = FastAPI(title="NeuroClass Attendance API")
 
 import os
+import uuid
+import logging
 from core.model_manager import model_manager
+from supabase import create_client, Client
+
+logger = logging.getLogger("uvicorn.error")
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+
+supabase: Client | None = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        logger.info("Supabase client initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Supabase client: {e}")
 
 @app.get("/health")
 async def health_check():
@@ -69,6 +85,53 @@ batch_embedder = BatchFaceEmbedder()
 engine = AttendanceEngine(db)
 profile_store = ProfileStore()
 active_sessions = {}
+
+# Startup: Load Supabase embeddings into FAISS
+@app.on_event("startup")
+async def startup_event():
+    if not supabase:
+        logger.warning("Supabase not configured, skipping embedding sync on startup")
+        return
+
+    try:
+        logger.info("Fetching embeddings from Supabase on startup...")
+        # Paginate if > 1000 in the future, but for now fetch all
+        response = supabase.table("face_embeddings").select("*").execute()
+        rows = response.data
+
+        loaded_count = 0
+        for row in rows:
+            try:
+                # pgvector returns embedding as a string or list of floats
+                emb_data = row.get("embedding")
+                if not emb_data:
+                    continue
+
+                if isinstance(emb_data, str):
+                    # pgvector format: "[0.1,0.2,...]"
+                    import ast
+                    vector = np.array(ast.literal_eval(emb_data), dtype=np.float32)
+                else:
+                    vector = np.array(emb_data, dtype=np.float32)
+
+                if vector.shape != (512,):
+                    continue
+
+                metadata = {
+                    "student_id": row.get("student_id"),
+                    "classroom_id": row.get("classroom_id"),
+                    "profile_type": "centroid",
+                    "supabase_id": row.get("id")
+                }
+
+                db.add_embedding(vector, metadata)
+                loaded_count += 1
+            except Exception as e:
+                logger.error(f"Failed to load embedding for row {row.get('id')}: {e}")
+
+        logger.info(f"Successfully loaded {loaded_count} embeddings from Supabase into FAISS")
+    except Exception as e:
+        logger.error(f"Failed to fetch embeddings from Supabase: {e}")
 
 from api.auth import verify_service_token
 
@@ -140,6 +203,8 @@ async def enroll_student(
 
     if accepted_embeddings:
         prototype = calculate_prototype(accepted_embeddings, method="centroid")
+
+        # Add to local FAISS
         db.add_embedding(prototype, {
             "student_id": canonical_student_id,
             "classroom_id": classroom_id,
@@ -147,6 +212,43 @@ async def enroll_student(
             "sample_count": accepted_samples,
             "profile_type": "centroid"
         })
+
+        # Upsert to Supabase
+        if supabase:
+            try:
+                # We need a profile_id for the foreign key, create one if it doesn't exist
+                # Or just use the student_id if they share the same PK
+                # Based on schema, we might need to upsert face_profiles first
+                profile_id = str(uuid.uuid4())
+
+                # Format vector for pgvector
+                vector_str = "[" + ",".join(str(x) for x in prototype) + "]"
+
+                # Check if profile exists
+                prof_resp = supabase.table("face_profiles").select("id").eq("student_id", canonical_student_id).execute()
+                if not prof_resp.data:
+                    supabase.table("face_profiles").insert({
+                        "id": profile_id,
+                        "student_id": canonical_student_id,
+                        "classroom_id": classroom_id,
+                        "version": 1
+                    }).execute()
+                else:
+                    profile_id = prof_resp.data[0]["id"]
+
+                # Upsert embedding
+                supabase.table("face_embeddings").upsert({
+                    "profile_id": profile_id,
+                    "student_id": canonical_student_id,
+                    "classroom_id": classroom_id,
+                    "embedding": vector_str,
+                    "source": "centroid_enrollment",
+                    "quality_score": accepted_samples
+                }, on_conflict="student_id,classroom_id").execute()
+
+                logger.info(f"Successfully upserted embedding for student {canonical_student_id} to Supabase")
+            except Exception as e:
+                logger.error(f"Failed to upsert embedding to Supabase: {e}")
 
     return {
         "success": accepted_samples > 0,

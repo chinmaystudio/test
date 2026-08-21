@@ -10,3 +10,5 @@ pydantic
 scikit-learn
 pytest
 psutil
+supabase
+requests
