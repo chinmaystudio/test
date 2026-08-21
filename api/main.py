@@ -149,6 +149,8 @@ async def start_attendance_session(
 @app.post("/ai/v1/attendance/frame", response_model=FrameResponse)
 async def process_frame(
     classroom_id: str = Form(...),
+    session_id: str = Form(...),
+    capture_mode: str = Form("live"),
     file: UploadFile = File(...),
     _ = Depends(verify_service_token)
 ):
@@ -156,7 +158,7 @@ async def process_frame(
     nparr = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    results = engine.process_frame(img, classroom_id)
+    results = engine.process_frame(img, classroom_id, lecture_id=session_id, capture_mode=capture_mode)
 
     return FrameResponse(
         classroom_id=classroom_id,

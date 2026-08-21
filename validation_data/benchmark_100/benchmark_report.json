@@ -1,0 +1,927 @@
+{
+  "dataset": "LFW via Figshare mirror (CC BY 4.0 metadata)",
+  "warning": "This is an engineering stress test on public celebrity images, not a real classroom accuracy guarantee.",
+  "model_path": "buffalo_s / ArcFace server-side AttendanceEngine",
+  "enrolled_students": 100,
+  "present_roster_students": 50,
+  "absent_roster_students": 50,
+  "unknown_impostors": 50,
+  "enrollment_failures": [],
+  "genuine_true_positive": 44,
+  "genuine_false_negative": 6,
+  "impostor_false_positive": 0,
+  "impostor_true_negative": 50,
+  "genuine_recognition_accuracy": 0.88,
+  "false_rejection_rate": 0.12,
+  "false_acceptance_rate": 0.0,
+  "average_genuine_latency_ms": 48.02519614575431,
+  "p95_genuine_latency_ms": 74.96209793607701,
+  "composite_faces_submitted": 50,
+  "composite_faces_detected_and_returned": 55,
+  "composite_latency_ms": 1016.5625850204378,
+  "genuine_rows": [
+    {
+      "identity": "Bill_Frist",
+      "expected_student_id": "10c9d80e-e037-5383-ada9-d61165e6a32b",
+      "predicted_student_id": "10c9d80e-e037-5383-ada9-d61165e6a32b",
+      "status": "PRESENT",
+      "similarity": 0.7188,
+      "latency_ms": 40.169487008824944,
+      "correct": true
+    },
+    {
+      "identity": "Nancy_Pelosi",
+      "expected_student_id": "50386344-148a-5a16-9010-a51c2e7ca155",
+      "predicted_student_id": "50386344-148a-5a16-9010-a51c2e7ca155",
+      "status": "PRESENT",
+      "similarity": 0.6629,
+      "latency_ms": 40.46673595439643,
+      "correct": true
+    },
+    {
+      "identity": "Sally_Kirkland",
+      "expected_student_id": "579bc20e-2b9a-53ce-bb69-73ccce0c4737",
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 39.95880205184221,
+      "correct": false
+    },
+    {
+      "identity": "Kjell_Magne_Bondevik",
+      "expected_student_id": "30a7880a-7fa8-52ae-a56c-bf69378b9312",
+      "predicted_student_id": "30a7880a-7fa8-52ae-a56c-bf69378b9312",
+      "status": "PRESENT",
+      "similarity": 0.5571,
+      "latency_ms": 39.78928201831877,
+      "correct": true
+    },
+    {
+      "identity": "Prince_Charles",
+      "expected_student_id": "7ffd97b6-0813-52ee-8af7-251ae8480d9e",
+      "predicted_student_id": "7ffd97b6-0813-52ee-8af7-251ae8480d9e",
+      "status": "PRESENT",
+      "similarity": 0.6513,
+      "latency_ms": 39.21577602159232,
+      "correct": true
+    },
+    {
+      "identity": "Robert_Zoellick",
+      "expected_student_id": "a71175a5-1c2e-5b95-99b1-fe3f4daa57dc",
+      "predicted_student_id": "a71175a5-1c2e-5b95-99b1-fe3f4daa57dc",
+      "status": "PRESENT",
+      "similarity": 0.6772,
+      "latency_ms": 40.22481793072075,
+      "correct": true
+    },
+    {
+      "identity": "Pupi_Avati",
+      "expected_student_id": "9910176d-5b65-53e2-8e93-3907cba33c6f",
+      "predicted_student_id": "9910176d-5b65-53e2-8e93-3907cba33c6f",
+      "status": "PRESENT",
+      "similarity": 0.8376,
+      "latency_ms": 58.91447199974209,
+      "correct": true
+    },
+    {
+      "identity": "Johnny_Tapia",
+      "expected_student_id": "8233c945-1f39-517e-ab48-0f867ff291ae",
+      "predicted_student_id": "8233c945-1f39-517e-ab48-0f867ff291ae",
+      "status": "PRESENT",
+      "similarity": 0.6921,
+      "latency_ms": 46.97251599282026,
+      "correct": true
+    },
+    {
+      "identity": "Heath_Ledger",
+      "expected_student_id": "f33cc9cf-2f30-5c9d-9c5b-facb4417dde7",
+      "predicted_student_id": "f33cc9cf-2f30-5c9d-9c5b-facb4417dde7",
+      "status": "PRESENT",
+      "similarity": 0.6569,
+      "latency_ms": 42.987248045392334,
+      "correct": true
+    },
+    {
+      "identity": "Lars_Von_Trier",
+      "expected_student_id": "b467c88a-2fcd-50a6-a16c-6c127504d808",
+      "predicted_student_id": "b467c88a-2fcd-50a6-a16c-6c127504d808",
+      "status": "PRESENT",
+      "similarity": 0.7661,
+      "latency_ms": 58.7758410256356,
+      "correct": true
+    },
+    {
+      "identity": "Katie_Harman",
+      "expected_student_id": "03679c08-9091-5e01-b1e7-9c4e7a89e536",
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 42.90609702002257,
+      "correct": false
+    },
+    {
+      "identity": "Robert_De_Niro",
+      "expected_student_id": "f1ee6812-e2c6-572f-bd97-5ae0b57db5c7",
+      "predicted_student_id": "f1ee6812-e2c6-572f-bd97-5ae0b57db5c7",
+      "status": "PRESENT",
+      "similarity": 0.779,
+      "latency_ms": 42.873524012975395,
+      "correct": true
+    },
+    {
+      "identity": "Alexander_Losyukov",
+      "expected_student_id": "a778db06-da1f-565b-8b29-274f1285f075",
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 40.35556293092668,
+      "correct": false
+    },
+    {
+      "identity": "Stanley_McChrystal",
+      "expected_student_id": "14a55a07-9543-5a55-88d0-2dd6f376dfd6",
+      "predicted_student_id": "14a55a07-9543-5a55-88d0-2dd6f376dfd6",
+      "status": "PRESENT",
+      "similarity": 0.657,
+      "latency_ms": 41.115756961517036,
+      "correct": true
+    },
+    {
+      "identity": "Kevin_Spacey",
+      "expected_student_id": "4ee96756-436e-5b95-b336-71a160d93c74",
+      "predicted_student_id": "4ee96756-436e-5b95-b336-71a160d93c74",
+      "status": "PRESENT",
+      "similarity": 0.8156,
+      "latency_ms": 42.11919696535915,
+      "correct": true
+    },
+    {
+      "identity": "Coretta_Scott_King",
+      "expected_student_id": "11308a14-f425-55d5-b9a8-e6c04297e1bd",
+      "predicted_student_id": "11308a14-f425-55d5-b9a8-e6c04297e1bd",
+      "status": "PRESENT",
+      "similarity": 0.7802,
+      "latency_ms": 48.08163200505078,
+      "correct": true
+    },
+    {
+      "identity": "Horst_Koehler",
+      "expected_student_id": "03281d62-69fe-5031-bf44-dde56c039377",
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 44.48340798262507,
+      "correct": false
+    },
+    {
+      "identity": "Queen_Rania",
+      "expected_student_id": "bf9795df-8448-5d68-9a9c-22947640b645",
+      "predicted_student_id": "bf9795df-8448-5d68-9a9c-22947640b645",
+      "status": "PRESENT",
+      "similarity": 0.6312,
+      "latency_ms": 42.11426305118948,
+      "correct": true
+    },
+    {
+      "identity": "Jelena_Dokic",
+      "expected_student_id": "e52c0b30-3869-5d55-b7ee-22f325fb331d",
+      "predicted_student_id": "e52c0b30-3869-5d55-b7ee-22f325fb331d",
+      "status": "PRESENT",
+      "similarity": 0.571,
+      "latency_ms": 43.75161009375006,
+      "correct": true
+    },
+    {
+      "identity": "Diana_Krall",
+      "expected_student_id": "7988dd9d-9ef0-57c0-8dd5-9f7678b07241",
+      "predicted_student_id": "7988dd9d-9ef0-57c0-8dd5-9f7678b07241",
+      "status": "PRESENT",
+      "similarity": 0.6377,
+      "latency_ms": 45.46873702201992,
+      "correct": true
+    },
+    {
+      "identity": "Silvio_Berlusconi",
+      "expected_student_id": "a27c872b-f317-59a6-9321-34c84bea8aa7",
+      "predicted_student_id": "a27c872b-f317-59a6-9321-34c84bea8aa7",
+      "status": "PRESENT",
+      "similarity": 0.6013,
+      "latency_ms": 43.543384061194956,
+      "correct": true
+    },
+    {
+      "identity": "Kelvin_Sampson",
+      "expected_student_id": "01a365d3-1f09-527c-a469-a201748c9289",
+      "predicted_student_id": "01a365d3-1f09-527c-a469-a201748c9289",
+      "status": "PRESENT",
+      "similarity": 0.6702,
+      "latency_ms": 44.21102593187243,
+      "correct": true
+    },
+    {
+      "identity": "Rachel_Griffiths",
+      "expected_student_id": "8cfd809e-f479-5193-a994-f66b3f4cb3ac",
+      "predicted_student_id": "8cfd809e-f479-5193-a994-f66b3f4cb3ac",
+      "status": "PRESENT",
+      "similarity": 0.6213,
+      "latency_ms": 44.06519595067948,
+      "correct": true
+    },
+    {
+      "identity": "Mathias_Reichhold",
+      "expected_student_id": "5e7a649c-98a7-53ce-bc53-cf2d4b1f4e7f",
+      "predicted_student_id": "5e7a649c-98a7-53ce-bc53-cf2d4b1f4e7f",
+      "status": "PRESENT",
+      "similarity": 0.7548,
+      "latency_ms": 44.57664396613836,
+      "correct": true
+    },
+    {
+      "identity": "Jay_Garner",
+      "expected_student_id": "2b4382bb-9def-5a51-a133-d02a2e4db4d6",
+      "predicted_student_id": "2b4382bb-9def-5a51-a133-d02a2e4db4d6",
+      "status": "PRESENT",
+      "similarity": 0.6588,
+      "latency_ms": 43.3228500187397,
+      "correct": true
+    },
+    {
+      "identity": "Steven_Spielberg",
+      "expected_student_id": "d6fc32ac-009b-5085-8a06-f78f11657d27",
+      "predicted_student_id": "d6fc32ac-009b-5085-8a06-f78f11657d27",
+      "status": "PRESENT",
+      "similarity": 0.6026,
+      "latency_ms": 43.40643505565822,
+      "correct": true
+    },
+    {
+      "identity": "Joe_Lieberman",
+      "expected_student_id": "92bff8fb-4e74-5475-89d9-a56bcff5e5ea",
+      "predicted_student_id": "92bff8fb-4e74-5475-89d9-a56bcff5e5ea",
+      "status": "PRESENT",
+      "similarity": 0.7572,
+      "latency_ms": 42.69117896910757,
+      "correct": true
+    },
+    {
+      "identity": "Jim_Hahn",
+      "expected_student_id": "7fd6f884-be71-577c-8209-ba0ff9f3c073",
+      "predicted_student_id": "7fd6f884-be71-577c-8209-ba0ff9f3c073",
+      "status": "PRESENT",
+      "similarity": 0.7121,
+      "latency_ms": 42.98232903238386,
+      "correct": true
+    },
+    {
+      "identity": "Sepp_Blatter",
+      "expected_student_id": "6c76b5f6-2b06-58e3-b325-4c73ac5212f4",
+      "predicted_student_id": "6c76b5f6-2b06-58e3-b325-4c73ac5212f4",
+      "status": "PRESENT",
+      "similarity": 0.5827,
+      "latency_ms": 45.60143197886646,
+      "correct": true
+    },
+    {
+      "identity": "Sebastien_Grosjean",
+      "expected_student_id": "7fc299d6-e1df-5e93-85fb-0b69f89bb82c",
+      "predicted_student_id": "7fc299d6-e1df-5e93-85fb-0b69f89bb82c",
+      "status": "PRESENT",
+      "similarity": 0.7622,
+      "latency_ms": 45.240873005241156,
+      "correct": true
+    },
+    {
+      "identity": "Mike_Krzyzewski",
+      "expected_student_id": "f93a6cae-d195-5d23-abf6-e7e91f68e849",
+      "predicted_student_id": "f93a6cae-d195-5d23-abf6-e7e91f68e849",
+      "status": "PRESENT",
+      "similarity": 0.7424,
+      "latency_ms": 44.022119021974504,
+      "correct": true
+    },
+    {
+      "identity": "Gloria_Trevi",
+      "expected_student_id": "807a50f6-8f32-5b03-958f-076f719f09ea",
+      "predicted_student_id": "807a50f6-8f32-5b03-958f-076f719f09ea",
+      "status": "PRESENT",
+      "similarity": 0.6566,
+      "latency_ms": 44.709150097332895,
+      "correct": true
+    },
+    {
+      "identity": "Amanda_Bynes",
+      "expected_student_id": "9f0f48a2-5552-52f2-802c-5fa1ee68b7fd",
+      "predicted_student_id": "9f0f48a2-5552-52f2-802c-5fa1ee68b7fd",
+      "status": "PRESENT",
+      "similarity": 0.603,
+      "latency_ms": 44.031094992533326,
+      "correct": true
+    },
+    {
+      "identity": "Xanana_Gusmao",
+      "expected_student_id": "a64c8cfc-37fa-5b1e-bbf7-6df8fc3f245e",
+      "predicted_student_id": "a64c8cfc-37fa-5b1e-bbf7-6df8fc3f245e",
+      "status": "PRESENT",
+      "similarity": 0.6648,
+      "latency_ms": 78.4124000929296,
+      "correct": true
+    },
+    {
+      "identity": "Thomas_Fargo",
+      "expected_student_id": "e5476516-6300-5f23-b933-de0e0f4a4bac",
+      "predicted_student_id": "e5476516-6300-5f23-b933-de0e0f4a4bac",
+      "status": "PRESENT",
+      "similarity": 0.7606,
+      "latency_ms": 41.694303043186665,
+      "correct": true
+    },
+    {
+      "identity": "Stockard_Channing",
+      "expected_student_id": "5b42356e-5d91-5e5c-90a9-84cee231d912",
+      "predicted_student_id": "5b42356e-5d91-5e5c-90a9-84cee231d912",
+      "status": "PRESENT",
+      "similarity": 0.5557,
+      "latency_ms": 43.23524597566575,
+      "correct": true
+    },
+    {
+      "identity": "Naji_Sabri",
+      "expected_student_id": "0a6dd7bc-9bd1-5efb-a86d-158a1abcc945",
+      "predicted_student_id": "0a6dd7bc-9bd1-5efb-a86d-158a1abcc945",
+      "status": "PRESENT",
+      "similarity": 0.7397,
+      "latency_ms": 100.93624598812312,
+      "correct": true
+    },
+    {
+      "identity": "Elizabeth_Hurley",
+      "expected_student_id": "52ced090-68b2-5f72-97ad-7ea46e76d986",
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 43.24059805367142,
+      "correct": false
+    },
+    {
+      "identity": "Rita_Grande",
+      "expected_student_id": "4c9f8282-d522-59c4-abe0-addbb81d0cb2",
+      "predicted_student_id": "4c9f8282-d522-59c4-abe0-addbb81d0cb2",
+      "status": "PRESENT",
+      "similarity": 0.6956,
+      "latency_ms": 42.145757004618645,
+      "correct": true
+    },
+    {
+      "identity": "Al_Gore",
+      "expected_student_id": "f4342566-26d7-5af9-b0c0-0b8138e4f137",
+      "predicted_student_id": "f4342566-26d7-5af9-b0c0-0b8138e4f137",
+      "status": "PRESENT",
+      "similarity": 0.5931,
+      "latency_ms": 59.97134395875037,
+      "correct": true
+    },
+    {
+      "identity": "Martha_Lucia_Ramirez",
+      "expected_student_id": "e120206e-2055-55c6-9301-c89255008162",
+      "predicted_student_id": "e120206e-2055-55c6-9301-c89255008162",
+      "status": "PRESENT",
+      "similarity": 0.6243,
+      "latency_ms": 62.73483298718929,
+      "correct": true
+    },
+    {
+      "identity": "Jeong_Se-hyun",
+      "expected_student_id": "3098b24c-0c8d-5c36-9d61-4b1892ab7d74",
+      "predicted_student_id": "3098b24c-0c8d-5c36-9d61-4b1892ab7d74",
+      "status": "PRESENT",
+      "similarity": 0.8116,
+      "latency_ms": 52.920419024303555,
+      "correct": true
+    },
+    {
+      "identity": "Cherie_Blair",
+      "expected_student_id": "7f727b29-87d2-584d-a1f9-e96bb847b1c0",
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 43.199569918215275,
+      "correct": false
+    },
+    {
+      "identity": "Helen_Clark",
+      "expected_student_id": "2936df0f-2037-5932-88bb-8a158c360842",
+      "predicted_student_id": "2936df0f-2037-5932-88bb-8a158c360842",
+      "status": "PRESENT",
+      "similarity": 0.6751,
+      "latency_ms": 46.50385899003595,
+      "correct": true
+    },
+    {
+      "identity": "Debbie_Reynolds",
+      "expected_student_id": "c31a4a5f-d468-5c15-a07d-ea32d1e1f045",
+      "predicted_student_id": "c31a4a5f-d468-5c15-a07d-ea32d1e1f045",
+      "status": "PRESENT",
+      "similarity": 0.7855,
+      "latency_ms": 70.74506196659058,
+      "correct": true
+    },
+    {
+      "identity": "Angela_Merkel",
+      "expected_student_id": "1fe9bd51-8a86-57ed-9f46-9084a00092e8",
+      "predicted_student_id": "1fe9bd51-8a86-57ed-9f46-9084a00092e8",
+      "status": "PRESENT",
+      "similarity": 0.5811,
+      "latency_ms": 41.12326598260552,
+      "correct": true
+    },
+    {
+      "identity": "Ralf_Schumacher",
+      "expected_student_id": "dcf06c9c-edf9-52b0-a66c-b88fb18371bf",
+      "predicted_student_id": "dcf06c9c-edf9-52b0-a66c-b88fb18371bf",
+      "status": "PRESENT",
+      "similarity": 0.6234,
+      "latency_ms": 43.034080998040736,
+      "correct": true
+    },
+    {
+      "identity": "Jodie_Foster",
+      "expected_student_id": "1a5414b8-015b-5a71-a594-0d81d8b16dd4",
+      "predicted_student_id": "1a5414b8-015b-5a71-a594-0d81d8b16dd4",
+      "status": "PRESENT",
+      "similarity": 0.6736,
+      "latency_ms": 43.91031700652093,
+      "correct": true
+    },
+    {
+      "identity": "Julianne_Moore",
+      "expected_student_id": "2457c798-7d60-5c00-b0bf-8124f3da8deb",
+      "predicted_student_id": "2457c798-7d60-5c00-b0bf-8124f3da8deb",
+      "status": "PRESENT",
+      "similarity": 0.7241,
+      "latency_ms": 43.6930360738188,
+      "correct": true
+    },
+    {
+      "identity": "Habib_Rizieq",
+      "expected_student_id": "c4ea668d-14a9-5636-bd1f-c4be6a19071f",
+      "predicted_student_id": "c4ea668d-14a9-5636-bd1f-c4be6a19071f",
+      "status": "PRESENT",
+      "similarity": 0.654,
+      "latency_ms": 90.6109920470044,
+      "correct": true
+    }
+  ],
+  "impostor_rows": [
+    {
+      "identity": "Taufik_Hidayat",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 48.26917697209865,
+      "correct": true
+    },
+    {
+      "identity": "Larry_Thompson",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 46.20905907358974,
+      "correct": true
+    },
+    {
+      "identity": "Jesse_Harris",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 42.51349705737084,
+      "correct": true
+    },
+    {
+      "identity": "Heinz_Feldmann",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 43.93181100022048,
+      "correct": true
+    },
+    {
+      "identity": "Keanu_Reeves",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 48.56592300347984,
+      "correct": true
+    },
+    {
+      "identity": "Sophia_Loren",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 51.52475996874273,
+      "correct": true
+    },
+    {
+      "identity": "James_McGreevey",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 45.97888607531786,
+      "correct": true
+    },
+    {
+      "identity": "Sarah_Jessica_Parker",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 45.84829998202622,
+      "correct": true
+    },
+    {
+      "identity": "Megawati_Sukarnoputri",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 66.41427602153271,
+      "correct": true
+    },
+    {
+      "identity": "Larry_Brown",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 53.69284097105265,
+      "correct": true
+    },
+    {
+      "identity": "Yasar_Yakis",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 66.98550400324166,
+      "correct": true
+    },
+    {
+      "identity": "Sachiko_Yamada",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 44.096515979617834,
+      "correct": true
+    },
+    {
+      "identity": "Jennifer_Lopez",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 43.28634007833898,
+      "correct": true
+    },
+    {
+      "identity": "Jon_Corzine",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 44.76107598748058,
+      "correct": true
+    },
+    {
+      "identity": "Edward_Lu",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 46.42894503194839,
+      "correct": true
+    },
+    {
+      "identity": "Sadie_Frost",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 45.460916007868946,
+      "correct": true
+    },
+    {
+      "identity": "Mian_Khursheed_Mehmood_Kasuri",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 45.43622396886349,
+      "correct": true
+    },
+    {
+      "identity": "Federico_Trillo",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 52.343002054840326,
+      "correct": true
+    },
+    {
+      "identity": "Jonathan_Edwards",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 53.76514105591923,
+      "correct": true
+    },
+    {
+      "identity": "Lance_Armstrong",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 47.735459986142814,
+      "correct": true
+    },
+    {
+      "identity": "Jim_OBrien",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 45.82377092447132,
+      "correct": true
+    },
+    {
+      "identity": "Lee_Soo-hyuck",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 50.70266698021442,
+      "correct": true
+    },
+    {
+      "identity": "Maria_Soledad_Alvear_Valenzuela",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 70.05364110227674,
+      "correct": true
+    },
+    {
+      "identity": "Condoleezza_Rice",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 47.35494602937251,
+      "correct": true
+    },
+    {
+      "identity": "Bono",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 48.99642709642649,
+      "correct": true
+    },
+    {
+      "identity": "Ann_Veneman",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 55.20192999392748,
+      "correct": true
+    },
+    {
+      "identity": "Tang_Jiaxuan",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 70.55577600840479,
+      "correct": true
+    },
+    {
+      "identity": "Rob_Marshall",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 65.43258298188448,
+      "correct": true
+    },
+    {
+      "identity": "Rainer_Schuettler",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 58.959636953659356,
+      "correct": true
+    },
+    {
+      "identity": "Carmen_Electra",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 49.051485024392605,
+      "correct": true
+    },
+    {
+      "identity": "James_Traficant",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 50.11614493560046,
+      "correct": true
+    },
+    {
+      "identity": "Choi_Sung-hong",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 88.42405199538916,
+      "correct": true
+    },
+    {
+      "identity": "Marcelo_Salas",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 45.36229697987437,
+      "correct": true
+    },
+    {
+      "identity": "Bijan_Darvish",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 66.3125969003886,
+      "correct": true
+    },
+    {
+      "identity": "Richard_Krajicek",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 44.44304609205574,
+      "correct": true
+    },
+    {
+      "identity": "Wolfgang_Schuessel",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 41.803822037763894,
+      "correct": true
+    },
+    {
+      "identity": "John_Howard",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 41.33214394096285,
+      "correct": true
+    },
+    {
+      "identity": "Alex_Sink",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 42.169739957898855,
+      "correct": true
+    },
+    {
+      "identity": "Goldie_Hawn",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 55.907484027557075,
+      "correct": true
+    },
+    {
+      "identity": "Kim_Yong-il",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 44.38708792440593,
+      "correct": true
+    },
+    {
+      "identity": "Angelina_Jolie",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 43.99964201729745,
+      "correct": true
+    },
+    {
+      "identity": "Heidi_Fleiss",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 44.12681993562728,
+      "correct": true
+    },
+    {
+      "identity": "Norm_Coleman",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 63.48629004787654,
+      "correct": true
+    },
+    {
+      "identity": "Mary-Kate_Olsen",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 61.69956095982343,
+      "correct": true
+    },
+    {
+      "identity": "Robert_Evans",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 63.069525989703834,
+      "correct": true
+    },
+    {
+      "identity": "William_Bulger",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 44.39926298800856,
+      "correct": true
+    },
+    {
+      "identity": "Kate_Winslet",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 42.81743604224175,
+      "correct": true
+    },
+    {
+      "identity": "Fred_Thompson",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 43.22109406348318,
+      "correct": true
+    },
+    {
+      "identity": "Terry_McAuliffe",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 42.26540494710207,
+      "correct": true
+    },
+    {
+      "identity": "Juan_Manuel_Marquez",
+      "expected_student_id": null,
+      "predicted_student_id": null,
+      "status": "UNKNOWN",
+      "similarity": null,
+      "latency_ms": 42.43396001402289,
+      "correct": true
+    }
+  ],
+  "composite_image": "/home/ubuntu/neuroclass_attendance/validation_data/benchmark_100/composite_50_present_faces.jpg"
+}

@@ -19,7 +19,7 @@ class TemporalVerifier:
         self.stability_delta = stability_delta
         self.history: Dict[int, Deque[dict]] = defaultdict(lambda: deque(maxlen=window_size))
 
-    def observe(self, track_id: int, student_id: Optional[str], name: Optional[str], similarity: float) -> TemporalDecision:
+    def observe(self, track_id: int, student_id: Optional[str], name: Optional[str], similarity: float, min_observations: Optional[int] = None) -> TemporalDecision:
         self.history[track_id].append({"student_id": student_id, "name": name, "similarity": float(similarity)})
         observations = list(self.history[track_id])
         by_identity: Dict[Optional[str], list] = defaultdict(list)
@@ -27,7 +27,8 @@ class TemporalVerifier:
             by_identity[item["student_id"]].append(item["similarity"])
         identity, scores = max(by_identity.items(), key=lambda pair: len(pair[1]))
         avg = sum(scores) / len(scores) if scores else 0.0
-        stable = len(scores) >= self.min_observations and (max(scores) - min(scores) <= self.stability_delta)
+        required_observations = self.min_observations if min_observations is None else max(1, int(min_observations))
+        stable = len(scores) >= required_observations and (max(scores) - min(scores) <= self.stability_delta)
         confirmed = identity is not None and stable
         name_value = next((i["name"] for i in reversed(observations) if i["student_id"] == identity), None)
         return TemporalDecision(identity if confirmed else None, name_value if confirmed else None,

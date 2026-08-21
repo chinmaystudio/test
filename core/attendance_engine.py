@@ -34,7 +34,18 @@ class AttendanceEngine:
         self.confirmed.clear()
         self.track_identities.clear()
 
-    def process_frame(self, frame, classroom_id: str, lecture_id: str = "default") -> list[dict]:
+    def process_frame(self, frame, classroom_id: str, lecture_id: str = "default", capture_mode: str = "live") -> list[dict]:
+        """Process a frame using server-side detection and ArcFace matching.
+
+        Live preview uses temporal confirmation to suppress one-frame false positives.
+        A teacher-triggered manual capture uses the same similarity policy but confirms
+        a high-confidence match from that captured frame immediately.
+        """
+        manual_capture = capture_mode.lower() == "manual"
+        if manual_capture:
+            # Do not let low-confidence preview history block a fresh teacher capture.
+            self.temporal.clear()
+            self.track_identities.clear()
         faces = self.detector.detect(frame)
         tracked_faces = self.tracker.update(faces)
         results = []
@@ -72,7 +83,14 @@ class AttendanceEngine:
                 continue
                 
             import cv2
-            crop_resized = cv2.resize(crop, (112, 112))
+            try:
+                from insightface.utils.face_align import norm_crop
+                if getattr(face, 'kps', None) is not None:
+                    crop_resized = norm_crop(frame, face.kps, image_size=112)
+                else:
+                    crop_resized = cv2.resize(crop, (112, 112))
+            except Exception:
+                crop_resized = cv2.resize(crop, (112, 112))
             
             if skip_embedding:
                 # Use cached identity state
@@ -118,7 +136,7 @@ class AttendanceEngine:
                 best_match['margin'] = margin
                 
             decision = self.policy.decide(best_match)
-            temporal = self.temporal.observe(track_id, decision.student_id, decision.name, decision.similarity)
+            temporal = self.temporal.observe(track_id, decision.student_id, decision.name, decision.similarity, min_observations=1 if manual_capture else None)
             status = "PRESENT" if temporal.confirmed and decision.state is MatchState.HIGH_CONFIDENCE else "REVIEW"
             verification = "AUTO" if status == "PRESENT" else "MANUAL"
             if temporal.confirmed and decision.state is MatchState.HIGH_CONFIDENCE:
