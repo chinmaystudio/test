@@ -153,7 +153,7 @@ A Dockerfile and `render.yaml` are included for Linux deployment.
 ### Render Free Tier (512MB RAM)
 The default Render Free tier is strictly limited to 512MB RAM. Loading the standard InsightFace `buffalo_l` model will cause Out-Of-Memory (OOM) crashes during startup.
 
-To deploy successfully on Render Free, you **must** use the `buffalo_s` model. This is configured automatically in the provided `Dockerfile` and `render.yaml` via environment variables:
+To deploy successfully on Render Free, you **must** use the `buffalo_s` model. The service uses a targeted loader that creates sessions only for the detector and ArcFace recognition models; it does not temporarily instantiate the unused landmark or gender models from the InsightFace model pack. ONNX Runtime is configured for one thread, sequential execution, basic graph optimization, and disabled CPU memory arenas. This is configured automatically in the provided `Dockerfile` and `render.yaml` via environment variables:
 
 ```env
 MODEL_NAME=buffalo_s
@@ -181,7 +181,7 @@ Run the lightweight startup check before deploying:
 ```bash
 python scripts_verify_startup.py
 ```
-It starts the service with the Render Free configuration, verifies `/health` returns HTTP 200, confirms the model loaded, and checks that the actual ONNX provider is reported.
+It starts the service with the Render Free configuration, verifies `/health` returns HTTP 200, confirms the model loaded, and checks that the actual ONNX provider is reported. `scripts_memory_probe.py` measures clean-process peak RSS; on the validation machine, the targeted loader reduced buffalo_s peak RSS from roughly 647MB to roughly 184MB.
 
 Compare the free-tier model and the larger model on the existing classroom validation composites:
 ```bash
