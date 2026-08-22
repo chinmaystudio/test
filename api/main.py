@@ -216,71 +216,72 @@ async def enroll_student(
             )
 
         if accepted_embeddings:
-            prototype = calculate_prototype(accepted_embeddings, method="centroid")
+            try:
+                prototype = calculate_prototype(accepted_embeddings, method="centroid")
 
-            # Update local ProfileStore for summary/reset endpoints
-            profile = profile_store.get_profile(canonical_student_id, classroom_id)
-            if not profile:
-                from models.schemas import IdentityProfile
-                profile = IdentityProfile(student_id=canonical_student_id, classroom_id=classroom_id)
-            profile.enrollment_embeddings.append(prototype.tolist() if hasattr(prototype, "tolist") else list(prototype))
-            profile.prototype_embedding = prototype.tolist() if hasattr(prototype, "tolist") else list(prototype)
-            profile.last_updated = time.time()
-            profile_store.save_profile(profile, reason="centroid_enrollment")
+                # Update local ProfileStore for summary/reset endpoints
+                profile = profile_store.get_profile(canonical_student_id, classroom_id)
+                if not profile:
+                    from models.schemas import IdentityProfile
+                    profile = IdentityProfile(student_id=canonical_student_id, classroom_id=classroom_id)
+                profile.enrollment_embeddings.append(prototype.tolist() if hasattr(prototype, "tolist") else list(prototype))
+                profile.prototype_embedding = prototype.tolist() if hasattr(prototype, "tolist") else list(prototype)
+                profile.last_updated = time.time()
+                profile_store.save_profile(profile, reason="centroid_enrollment")
 
-            # Add to local FAISS
-            db.add_embedding(prototype, {
-                "student_id": canonical_student_id,
-                "classroom_id": classroom_id,
-                "registration_session_id": registration_session_id,
-                "sample_count": accepted_samples,
-                "profile_type": "centroid"
-            })
-
-            # Upsert to Supabase
-            if supabase:
-                # We need a profile_id for the foreign key, create one if it doesn't exist
-                # Or just use the student_id if they share the same PK
-                # Based on schema, we might need to upsert face_profiles first
-                profile_id = str(uuid.uuid4())
-
-                # Format vector for pgvector
-                vector_str = "[" + ",".join(str(x) for x in prototype) + "]"
-
-                # Check if profile exists for this specific classroom
-                prof_resp = supabase.table("face_profiles").select("id").eq("student_id", canonical_student_id).eq("classroom_id", classroom_id).execute()
-                if not prof_resp.data:
-                    supabase.table("face_profiles").insert({
-                        "id": profile_id,
-                        "student_id": canonical_student_id,
-                        "classroom_id": classroom_id,
-                        "version": 1
-                    }).execute()
-                else:
-                    profile_id = prof_resp.data[0]["id"]
-
-                # Upsert embedding
-                supabase.table("face_embeddings").upsert({
-                    "profile_id": profile_id,
+                # Add to local FAISS
+                db.add_embedding(prototype, {
                     "student_id": canonical_student_id,
                     "classroom_id": classroom_id,
-                    "embedding": vector_str,
-                    "source": "centroid_enrollment",
-                    "quality_score": accepted_samples
-                }, on_conflict="student_id,classroom_id").execute()
+                    "registration_session_id": registration_session_id,
+                    "sample_count": accepted_samples,
+                    "profile_type": "centroid"
+                })
 
-                logger.info(f"Successfully upserted embedding for student {canonical_student_id} to Supabase")
-    except Exception as e:
-            import traceback
-            logger.error(f"Enrollment persistence failed: {traceback.format_exc()}")
-            return JSONResponse(
-                status_code=500,
-                content={
-                    "success": False,
-                    "error": "Failed to persist enrollment data",
-                    "detail": str(e)
-                }
-            )
+                # Upsert to Supabase
+                if supabase:
+                    # We need a profile_id for the foreign key, create one if it doesn't exist
+                    # Or just use the student_id if they share the same PK
+                    # Based on schema, we might need to upsert face_profiles first
+                    profile_id = str(uuid.uuid4())
+
+                    # Format vector for pgvector
+                    vector_str = "[" + ",".join(str(x) for x in prototype) + "]"
+
+                    # Check if profile exists for this specific classroom
+                    prof_resp = supabase.table("face_profiles").select("id").eq("student_id", canonical_student_id).eq("classroom_id", classroom_id).execute()
+                    if not prof_resp.data:
+                        supabase.table("face_profiles").insert({
+                            "id": profile_id,
+                            "student_id": canonical_student_id,
+                            "classroom_id": classroom_id,
+                            "version": 1
+                        }).execute()
+                    else:
+                        profile_id = prof_resp.data[0]["id"]
+
+                    # Upsert embedding
+                    supabase.table("face_embeddings").upsert({
+                        "profile_id": profile_id,
+                        "student_id": canonical_student_id,
+                        "classroom_id": classroom_id,
+                        "embedding": vector_str,
+                        "source": "centroid_enrollment",
+                        "quality_score": accepted_samples
+                    }, on_conflict="student_id,classroom_id").execute()
+
+                    logger.info(f"Successfully upserted embedding for student {canonical_student_id} to Supabase")
+            except Exception as e:
+                import traceback
+                logger.error(f"Enrollment persistence failed: {traceback.format_exc()}")
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "success": False,
+                        "error": "Failed to persist enrollment data",
+                        "detail": str(e)
+                    }
+                )
 
         return {
             "success": accepted_samples > 0,
