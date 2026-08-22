@@ -215,30 +215,30 @@ async def enroll_student(
         )
 
     if accepted_embeddings:
-        prototype = calculate_prototype(accepted_embeddings, method="centroid")
+        try:
+            prototype = calculate_prototype(accepted_embeddings, method="centroid")
 
-        # Update local ProfileStore for summary/reset endpoints
-        profile = profile_store.get_profile(canonical_student_id)
-        if not profile:
-            from models.schemas import IdentityProfile
-            profile = IdentityProfile(student_id=canonical_student_id, classroom_id=classroom_id)
-        profile.enrollment_embeddings.append(prototype.tolist() if hasattr(prototype, "tolist") else list(prototype))
-        profile.prototype_embedding = prototype.tolist() if hasattr(prototype, "tolist") else list(prototype)
-        profile.last_updated = time.time()
-        profile_store.save_profile(profile, reason="centroid_enrollment")
+            # Update local ProfileStore for summary/reset endpoints
+            profile = profile_store.get_profile(canonical_student_id, classroom_id)
+            if not profile:
+                from models.schemas import IdentityProfile
+                profile = IdentityProfile(student_id=canonical_student_id, classroom_id=classroom_id)
+            profile.enrollment_embeddings.append(prototype.tolist() if hasattr(prototype, "tolist") else list(prototype))
+            profile.prototype_embedding = prototype.tolist() if hasattr(prototype, "tolist") else list(prototype)
+            profile.last_updated = time.time()
+            profile_store.save_profile(profile, reason="centroid_enrollment")
 
-        # Add to local FAISS
-        db.add_embedding(prototype, {
-            "student_id": canonical_student_id,
-            "classroom_id": classroom_id,
-            "registration_session_id": registration_session_id,
-            "sample_count": accepted_samples,
-            "profile_type": "centroid"
-        })
+            # Add to local FAISS
+            db.add_embedding(prototype, {
+                "student_id": canonical_student_id,
+                "classroom_id": classroom_id,
+                "registration_session_id": registration_session_id,
+                "sample_count": accepted_samples,
+                "profile_type": "centroid"
+            })
 
-        # Upsert to Supabase
-        if supabase:
-            try:
+            # Upsert to Supabase
+            if supabase:
                 # We need a profile_id for the foreign key, create one if it doesn't exist
                 # Or just use the student_id if they share the same PK
                 # Based on schema, we might need to upsert face_profiles first
@@ -270,16 +270,17 @@ async def enroll_student(
                 }, on_conflict="student_id,classroom_id").execute()
 
                 logger.info(f"Successfully upserted embedding for student {canonical_student_id} to Supabase")
-            except Exception as e:
-                logger.error(f"Failed to upsert embedding to Supabase: {e}")
-                return JSONResponse(
-                    status_code=500,
-                    content={
-                        "success": False,
-                        "error": "Failed to save face embedding to database",
-                        "detail": str(e)
-                    }
-                )
+        except Exception as e:
+            import traceback
+            logger.error(f"Enrollment persistence failed: {traceback.format_exc()}")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "success": False,
+                    "error": "Failed to persist enrollment data",
+                    "detail": str(e)
+                }
+            )
 
     return {
         "success": accepted_samples > 0,
