@@ -201,6 +201,18 @@ async def enroll_student(
             rejected_samples += 1
             rejection_reasons.append("EMBEDDING_FAILED")
 
+    if not accepted_embeddings:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "success": False,
+                "accepted_samples": 0,
+                "rejected_samples": rejected_samples,
+                "rejection_reasons": list(set(rejection_reasons)),
+                "error": "All provided face samples were rejected."
+            }
+        )
+
     if accepted_embeddings:
         prototype = calculate_prototype(accepted_embeddings, method="centroid")
 
