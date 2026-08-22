@@ -222,7 +222,7 @@ async def enroll_student(
                 # Update local ProfileStore for summary/reset endpoints
                 profile = profile_store.get_profile(canonical_student_id, classroom_id)
                 if not profile:
-                    from models.schemas import IdentityProfile
+                    from db.profiles import IdentityProfile
                     profile = IdentityProfile(student_id=canonical_student_id, classroom_id=classroom_id)
                 profile.enrollment_embeddings.append(prototype.tolist() if hasattr(prototype, "tolist") else list(prototype))
                 profile.prototype_embedding = prototype.tolist() if hasattr(prototype, "tolist") else list(prototype)
