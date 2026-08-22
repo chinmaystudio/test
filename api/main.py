@@ -271,6 +271,14 @@ async def enroll_student(
                 logger.info(f"Successfully upserted embedding for student {canonical_student_id} to Supabase")
             except Exception as e:
                 logger.error(f"Failed to upsert embedding to Supabase: {e}")
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "success": False,
+                        "error": "Failed to save face embedding to database",
+                        "detail": str(e)
+                    }
+                )
 
     return {
         "success": accepted_samples > 0,
