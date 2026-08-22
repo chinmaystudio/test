@@ -374,6 +374,7 @@ async def process_frame(
     classroom_id: str = Form(...),
     session_id: str = Form(...),
     capture_mode: str = Form("live"),
+    target_student_id: str | None = Form(None),
     file: UploadFile = File(...),
     _ = Depends(verify_service_token)
 ):
@@ -383,7 +384,7 @@ async def process_frame(
 
     log_event("FRAME_RECEIVED", session_id=session_id, classroom_id=classroom_id, capture_mode=capture_mode)
     start_time = time.time()
-    results = engine.process_frame(img, classroom_id, lecture_id=session_id, capture_mode=capture_mode)
+    results = engine.process_frame(img, classroom_id, lecture_id=session_id, capture_mode=capture_mode, target_student_id=target_student_id)
     latency_ms = int((time.time() - start_time) * 1000)
     
     faces_detected = len(results)

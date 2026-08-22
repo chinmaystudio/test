@@ -33,18 +33,21 @@ class LocalDatabase:
         self.save()
         return faiss_id
         
-    def search(self, embedding, k=1, classroom_id=None):
-        """Single embedding search (legacy)."""
-        res = self.search_batch([embedding], k, classroom_id)
+    def search(self, embedding, k=1, classroom_id=None, target_student_id=None):
+        """Single embedding search, optionally restricted to one enrolled student."""
+        res = self.search_batch([embedding], k, classroom_id, target_student_id)
         return res[0] if res else []
 
-    def search_batch(self, embeddings, k=1, classroom_id=None):
-        """Batch search for multiple query embeddings simultaneously."""
+    def search_batch(self, embeddings, k=1, classroom_id=None, target_student_id=None):
+        """Batch search for multiple query embeddings, optionally restricted to one enrolled student."""
         if self.index.ntotal == 0 or not embeddings:
             return [[] for _ in embeddings]
             
         emb_arr = np.array(embeddings, dtype=np.float32)
-        distances, indices = self.index.search(emb_arr, k * 5)
+        # A targeted verification must be able to find its profile even when it is
+        # not among the global top five neighbors in a multi-student classroom.
+        search_k = self.index.ntotal if target_student_id else k * 5
+        distances, indices = self.index.search(emb_arr, search_k)
         
         batch_results = []
         for q_idx in range(len(embeddings)):
@@ -62,6 +65,9 @@ class LocalDatabase:
                 try:
                     canonical_student_id = str(UUID(str(meta.get('student_id'))))
                 except (TypeError, ValueError, AttributeError):
+                    continue
+
+                if target_student_id and canonical_student_id.lower() != str(target_student_id).strip().lower():
                     continue
 
                 results.append({

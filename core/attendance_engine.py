@@ -50,7 +50,7 @@ class AttendanceEngine:
         self.confirmed.clear()
         self.track_identities.clear()
 
-    def process_frame(self, frame, classroom_id: str, lecture_id: str = "default", capture_mode: str = "live") -> list[dict]:
+    def process_frame(self, frame, classroom_id: str, lecture_id: str = "default", capture_mode: str = "live", target_student_id: str | None = None) -> list[dict]:
         """Process a frame using server-side detection and ArcFace matching.
 
         Live preview uses temporal confirmation to suppress one-frame false positives.
@@ -134,7 +134,7 @@ class AttendanceEngine:
         embeddings = self.batch_embedder.generate_embeddings_batch(valid_crops, batch_size=32)
         
         # Batch search
-        matches_list = self.db.search_batch(embeddings, k=2, classroom_id=classroom_id)
+        matches_list = self.db.search_batch(embeddings, k=2, classroom_id=classroom_id, target_student_id=target_student_id)
         
         for i, (track_id, face, embedding, matches) in enumerate(zip(valid_track_ids, valid_faces, embeddings, matches_list)):
             # Create margin from second best if available
