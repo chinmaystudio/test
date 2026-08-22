@@ -145,77 +145,77 @@ async def enroll_student(
 ):
     # Only public.students.id is accepted; aliases such as STU001 are rejected
     # before any biometric data is processed.
-    canonical_student_id = str(student_id)
-    accepted_samples = 0
-    rejected_samples = 0
-    rejection_reasons = []
-    accepted_embeddings = []
+    try:
+        canonical_student_id = str(student_id)
+        accepted_samples = 0
+        rejected_samples = 0
+        rejection_reasons = []
+        accepted_embeddings = []
 
-    for file in files:
-        contents = await file.read()
-        nparr = np.frombuffer(contents, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        for file in files:
+            contents = await file.read()
+            nparr = np.frombuffer(contents, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        if img is None:
-            rejected_samples += 1
-            rejection_reasons.append("INVALID_IMAGE")
-            continue
+            if img is None:
+                rejected_samples += 1
+                rejection_reasons.append("INVALID_IMAGE")
+                continue
 
-        faces = detector.detect(img)
-        if len(faces) == 0:
-            rejected_samples += 1
-            rejection_reasons.append("NO_FACE")
-            continue
-        
-        # If multiple faces are detected, assume the largest one is the student registering.
-        if len(faces) > 1:
-            # Sort faces by bounding box area (width * height) descending
-            faces = sorted(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]), reverse=True)
+            faces = detector.detect(img)
+            if len(faces) == 0:
+                rejected_samples += 1
+                rejection_reasons.append("NO_FACE")
+                continue
+            
+            # If multiple faces are detected, assume the largest one is the student registering.
+            if len(faces) > 1:
+                # Sort faces by bounding box area (width * height) descending
+                faces = sorted(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]), reverse=True)
 
-        face = faces[0]
-        is_good, msg = detector.check_quality(face)
-        if not is_good:
-            rejected_samples += 1
-            if "small" in msg.lower():
-                rejection_reasons.append("FACE_TOO_SMALL")
-            elif "blur" in msg.lower():
-                rejection_reasons.append("BLURRY")
+            face = faces[0]
+            is_good, msg = detector.check_quality(face)
+            if not is_good:
+                rejected_samples += 1
+                if "small" in msg.lower():
+                    rejection_reasons.append("FACE_TOO_SMALL")
+                elif "blur" in msg.lower():
+                    rejection_reasons.append("BLURRY")
+                else:
+                    rejection_reasons.append("LOW_QUALITY")
+                continue
+
+            try:
+                from insightface.utils.face_align import norm_crop
+                crop = norm_crop(img, face.kps, image_size=112) if getattr(face, "kps", None) is not None else None
+            except Exception:
+                crop = None
+            if crop is None:
+                x1, y1, x2, y2 = [int(value) for value in face.bbox]
+                crop = img[max(0, y1):max(y1 + 1, y2), max(0, x1):max(x1 + 1, x2)]
+                if crop.size:
+                    crop = cv2.resize(crop, (112, 112), interpolation=cv2.INTER_CUBIC)
+            emb = batch_embedder.generate_embeddings_batch([crop], batch_size=1)[0] if crop is not None and crop.size else None
+            if emb is not None:
+                accepted_embeddings.append(emb.tolist() if hasattr(emb, "tolist") else list(emb))
+                accepted_samples += 1
             else:
-                rejection_reasons.append("LOW_QUALITY")
-            continue
+                rejected_samples += 1
+                rejection_reasons.append("EMBEDDING_FAILED")
 
-        try:
-            from insightface.utils.face_align import norm_crop
-            crop = norm_crop(img, face.kps, image_size=112) if getattr(face, "kps", None) is not None else None
-        except Exception:
-            crop = None
-        if crop is None:
-            x1, y1, x2, y2 = [int(value) for value in face.bbox]
-            crop = img[max(0, y1):max(y1 + 1, y2), max(0, x1):max(x1 + 1, x2)]
-            if crop.size:
-                crop = cv2.resize(crop, (112, 112), interpolation=cv2.INTER_CUBIC)
-        emb = batch_embedder.generate_embeddings_batch([crop], batch_size=1)[0] if crop is not None and crop.size else None
-        if emb is not None:
-            accepted_embeddings.append(emb.tolist() if hasattr(emb, "tolist") else list(emb))
-            accepted_samples += 1
-        else:
-            rejected_samples += 1
-            rejection_reasons.append("EMBEDDING_FAILED")
+        if not accepted_embeddings:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "accepted_samples": 0,
+                    "rejected_samples": rejected_samples,
+                    "rejection_reasons": list(set(rejection_reasons)),
+                    "error": "All provided face samples were rejected."
+                }
+            )
 
-    if not accepted_embeddings:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "success": False,
-                "accepted_samples": 0,
-                "rejected_samples": rejected_samples,
-                "rejection_reasons": list(set(rejection_reasons)),
-                "error": "All provided face samples were rejected."
-            }
-        )
-
-    if accepted_embeddings:
-        try:
+        if accepted_embeddings:
             prototype = calculate_prototype(accepted_embeddings, method="centroid")
 
             # Update local ProfileStore for summary/reset endpoints
@@ -270,7 +270,7 @@ async def enroll_student(
                 }, on_conflict="student_id,classroom_id").execute()
 
                 logger.info(f"Successfully upserted embedding for student {canonical_student_id} to Supabase")
-        except Exception as e:
+    except Exception as e:
             import traceback
             logger.error(f"Enrollment persistence failed: {traceback.format_exc()}")
             return JSONResponse(
@@ -282,14 +282,26 @@ async def enroll_student(
                 }
             )
 
-    return {
-        "success": accepted_samples > 0,
-        "accepted_samples": accepted_samples,
-        "rejected_samples": rejected_samples,
-        "rejection_reasons": list(set(rejection_reasons)),
-        "profile_id": f"prof_{canonical_student_id}",
-        "profile_version": 1
-    }
+        return {
+            "success": accepted_samples > 0,
+            "accepted_samples": accepted_samples,
+            "rejected_samples": rejected_samples,
+            "rejection_reasons": list(set(rejection_reasons)),
+            "profile_id": f"prof_{canonical_student_id}",
+            "profile_version": 1
+        }
+    except Exception as e:
+        import traceback
+        logger.error(f"Enrollment endpoint unhandled exception: {traceback.format_exc()}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": "Internal server error during enrollment processing",
+                "detail": str(e),
+                "traceback": traceback.format_exc()
+            }
+        )
 
 @app.post("/ai/v1/attendance/start")
 async def start_attendance_session(
