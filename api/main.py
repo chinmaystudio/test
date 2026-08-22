@@ -204,6 +204,16 @@ async def enroll_student(
     if accepted_embeddings:
         prototype = calculate_prototype(accepted_embeddings, method="centroid")
 
+        # Update local ProfileStore for summary/reset endpoints
+        profile = profile_store.get_profile(canonical_student_id)
+        if not profile:
+            from models.schemas import IdentityProfile
+            profile = IdentityProfile(student_id=canonical_student_id, classroom_id=classroom_id)
+        profile.enrollment_embeddings.append(prototype.tolist() if hasattr(prototype, "tolist") else list(prototype))
+        profile.prototype_embedding = prototype.tolist() if hasattr(prototype, "tolist") else list(prototype)
+        profile.last_updated = time.time()
+        profile_store.save_profile(profile, reason="centroid_enrollment")
+
         # Add to local FAISS
         db.add_embedding(prototype, {
             "student_id": canonical_student_id,
@@ -330,6 +340,7 @@ async def finish_attendance_session(
         raise HTTPException(status_code=404, detail="Attendance session not found")
     session["status"] = "FINISHED"
     session["finished_at"] = time.time()
+    engine.reset()
     return session
 
 @app.get("/ai/v1/profiles/{student_id}")
