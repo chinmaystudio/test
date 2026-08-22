@@ -247,8 +247,8 @@ async def enroll_student(
                 # Format vector for pgvector
                 vector_str = "[" + ",".join(str(x) for x in prototype) + "]"
 
-                # Check if profile exists
-                prof_resp = supabase.table("face_profiles").select("id").eq("student_id", canonical_student_id).execute()
+                # Check if profile exists for this specific classroom
+                prof_resp = supabase.table("face_profiles").select("id").eq("student_id", canonical_student_id).eq("classroom_id", classroom_id).execute()
                 if not prof_resp.data:
                     supabase.table("face_profiles").insert({
                         "id": profile_id,
