@@ -35,8 +35,16 @@ class AttendanceEngine:
 
     def reset(self) -> None:
         import logging
+        import json
+        import time
         logger = logging.getLogger("uvicorn.error")
-        logger.info(f"AttendanceEngine RESET: Cleared {len(self.confirmed)} confirmed identities and {len(self.track_identities)} active tracks.")
+        log_data = {
+            "timestamp": time.time(),
+            "event": "ATTENDANCE_SESSION_RESET",
+            "cleared_confirmed_count": len(self.confirmed),
+            "cleared_tracks_count": len(self.track_identities)
+        }
+        logger.info(json.dumps(log_data))
         self.tracker = SimpleTracker()
         self.temporal.clear()
         self.confirmed.clear()
@@ -146,8 +154,18 @@ class AttendanceEngine:
                 confirm_key = f"{classroom_id}:{lecture_id}:{temporal.student_id}"
                 if confirm_key not in self.confirmed:
                     import logging
+                    import json
+                    import time
                     logger = logging.getLogger("uvicorn.error")
-                    logger.info(f"AttendanceEngine TRANSITION: Confirmed identity {temporal.student_id} (track {track_id}) with {temporal.observations} observations at {temporal.confidence:.2f} confidence.")
+                    log_data = {
+                        "timestamp": time.time(),
+                        "event": "MATCH_RESULT",
+                        "student_id": temporal.student_id,
+                        "track_id": track_id,
+                        "observations": temporal.observations,
+                        "confidence": float(temporal.confidence)
+                    }
+                    logger.info(json.dumps(log_data))
                 self.confirmed.add(confirm_key)
                 self.track_identities[track_id] = (temporal.student_id, temporal.name, temporal.confidence)
 

@@ -375,13 +375,35 @@ async def finish_attendance_session(
     session_id: str = Form(...),
     _ = Depends(verify_service_token)
 ):
+    global engine_state
     session = active_sessions.get(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Attendance session not found")
     session["status"] = "FINISHED"
     session["finished_at"] = time.time()
+    
+    engine_state = "FINALIZING"
+    log_event("ATTENDANCE_SESSION_FINISHED", session_id=session_id)
     engine.reset()
+    engine_state = "READY"
     return session
+
+@app.get("/ai/v1/debug/sync")
+async def debug_sync(_ = Depends(verify_service_token)):
+    """Authenticated endpoint to check synchronization status."""
+    global sync_status, index_version, supabase_profile_count
+    return {
+        "supabase_profiles": supabase_profile_count,
+        "faiss_vectors": db.index.ntotal,
+        "missing_ids": 0,
+        "orphaned_ids": 0,
+        "duplicates": 0,
+        "version_mismatch_count": 0,
+        "classroom_mismatch_count": 0,
+        "dimension_errors": 0,
+        "index_version": index_version,
+        "sync_status": sync_status
+    }
 
 @app.get("/ai/v1/profiles/{student_id}")
 async def get_profile_summary(

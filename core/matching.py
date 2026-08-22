@@ -35,6 +35,6 @@ class ThresholdPolicy:
             state = MatchState.LOW_CONFIDENCE
         else:
             state = MatchState.UNKNOWN
-        if state is MatchState.UNKNOWN:
-            return MatchDecision(None, None, similarity, state)
+        # Always return the best candidate's identity so the UI and temporal tracker
+        # know who is being reviewed, even if confidence is currently UNKNOWN/LOW.
         return MatchDecision(match.get("student_id"), match.get("name"), similarity, state)
