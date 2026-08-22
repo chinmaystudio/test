@@ -255,7 +255,7 @@ async def enroll_student(
                             "id": profile_id,
                             "student_id": str(canonical_student_id),
                             "classroom_id": str(classroom_id),
-                            "version": 1
+                            "profile_version": 1
                         }).execute()
                     else:
                         profile_id = prof_resp.data[0]["id"]
