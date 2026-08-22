@@ -166,10 +166,11 @@ async def enroll_student(
             rejected_samples += 1
             rejection_reasons.append("NO_FACE")
             continue
+        
+        # If multiple faces are detected, assume the largest one is the student registering.
         if len(faces) > 1:
-            rejected_samples += 1
-            rejection_reasons.append("MULTIPLE_FACES")
-            continue
+            # Sort faces by bounding box area (width * height) descending
+            faces = sorted(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]), reverse=True)
 
         face = faces[0]
         is_good, msg = detector.check_quality(face)
