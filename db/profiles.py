@@ -28,27 +28,27 @@ class ProfileStore:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         self.path = Path(path)
         self.connection = sqlite3.connect(self.path, check_same_thread=False)
-            self.connection.execute("""
-                CREATE TABLE IF NOT EXISTS profiles (
-                    student_id TEXT,
-                    classroom_id TEXT NOT NULL,
-                    data TEXT NOT NULL,
-                    version INTEGER NOT NULL,
-                    last_updated REAL NOT NULL,
-                    PRIMARY KEY (student_id, classroom_id)
-                )
-            """)
-            self.connection.execute("""
-                CREATE TABLE IF NOT EXISTS profile_versions (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    student_id TEXT NOT NULL,
-                    classroom_id TEXT,
-                    version INTEGER NOT NULL,
-                    data TEXT NOT NULL,
-                    reason TEXT NOT NULL,
-                    created_at REAL NOT NULL
-                )
-            """)
+        self.connection.execute("""
+            CREATE TABLE IF NOT EXISTS profiles (
+                student_id TEXT,
+                classroom_id TEXT NOT NULL,
+                data TEXT NOT NULL,
+                version INTEGER NOT NULL,
+                last_updated REAL NOT NULL,
+                PRIMARY KEY (student_id, classroom_id)
+            )
+        """)
+        self.connection.execute("""
+            CREATE TABLE IF NOT EXISTS profile_versions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id TEXT NOT NULL,
+                classroom_id TEXT,
+                version INTEGER NOT NULL,
+                data TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                created_at REAL NOT NULL
+            )
+        """)
         self.connection.commit()
 
     def get_profile(self, student_id: str, classroom_id: str = None) -> Optional[IdentityProfile]:
