@@ -260,15 +260,20 @@ async def enroll_student(
                     else:
                         profile_id = prof_resp.data[0]["id"]
 
-                    # Upsert embedding
-                    supabase.table("face_embeddings").upsert({
+                    # Manual upsert for embedding to bypass missing unique constraint
+                    emb_resp = supabase.table("face_embeddings").select("id").eq("student_id", str(canonical_student_id)).eq("classroom_id", str(classroom_id)).execute()
+                    emb_payload = {
                         "profile_id": profile_id,
                         "student_id": str(canonical_student_id),
                         "classroom_id": str(classroom_id),
                         "embedding": vector_str,
                         "source": "centroid_enrollment",
                         "quality_score": accepted_samples
-                    }, on_conflict="student_id,classroom_id").execute()
+                    }
+                    if not emb_resp.data:
+                        supabase.table("face_embeddings").insert(emb_payload).execute()
+                    else:
+                        supabase.table("face_embeddings").update(emb_payload).eq("id", emb_resp.data[0]["id"]).execute()
 
                     logger.info(f"Successfully upserted embedding for student {canonical_student_id} to Supabase")
             except Exception as e:
