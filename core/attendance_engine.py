@@ -153,12 +153,19 @@ class AttendanceEngine:
 
             # Use the instantaneous frame similarity if temporal verification hasn't confirmed an identity yet,
             # so the UI shows the actual model confidence instead of dropping to 0.0.
-            display_similarity = temporal.confidence if temporal.confirmed else decision.similarity
+            # If both are zero, fallback to the best match's raw similarity so we never send a false 0.0
+            # when a candidate was actually found.
+            raw_similarity = best_match['similarity'] if best_match else 0.0
+            display_similarity = temporal.confidence if temporal.confirmed else (decision.similarity if decision.similarity > 0 else raw_similarity)
+
+            # Determine best available identity to show during review
+            display_student_id = temporal.student_id or decision.student_id or (best_match['student_id'] if best_match else None)
+            display_name = temporal.name or decision.name or (best_match['name'] if best_match else None)
 
             results.append({
                 "track_id": track_id,
-                "student_id": temporal.student_id or decision.student_id,
-                "name": temporal.name or decision.name,
+                "student_id": display_student_id,
+                "name": display_name,
                 "similarity": round(float(display_similarity), 4),
                 "status": status,
                 "confidence": "HIGH" if status == "PRESENT" else ("MEDIUM" if decision.state is MatchState.LOW_CONFIDENCE else "LOW"),
