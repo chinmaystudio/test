@@ -34,6 +34,9 @@ class AttendanceEngine:
         self.track_identities: Dict[int, str] = {}
 
     def reset(self) -> None:
+        import logging
+        logger = logging.getLogger("uvicorn.error")
+        logger.info(f"AttendanceEngine RESET: Cleared {len(self.confirmed)} confirmed identities and {len(self.track_identities)} active tracks.")
         self.tracker = SimpleTracker()
         self.temporal.clear()
         self.confirmed.clear()
@@ -140,14 +143,23 @@ class AttendanceEngine:
             status = "PRESENT" if temporal.confirmed and decision.state is MatchState.HIGH_CONFIDENCE else "REVIEW"
             verification = "AUTO" if status == "PRESENT" else "MANUAL"
             if temporal.confirmed and decision.state is MatchState.HIGH_CONFIDENCE:
-                self.confirmed.add(f"{classroom_id}:{lecture_id}:{temporal.student_id}")
+                confirm_key = f"{classroom_id}:{lecture_id}:{temporal.student_id}"
+                if confirm_key not in self.confirmed:
+                    import logging
+                    logger = logging.getLogger("uvicorn.error")
+                    logger.info(f"AttendanceEngine TRANSITION: Confirmed identity {temporal.student_id} (track {track_id}) with {temporal.observations} observations at {temporal.confidence:.2f} confidence.")
+                self.confirmed.add(confirm_key)
                 self.track_identities[track_id] = (temporal.student_id, temporal.name, temporal.confidence)
+
+            # Use the instantaneous frame similarity if temporal verification hasn't confirmed an identity yet,
+            # so the UI shows the actual model confidence instead of dropping to 0.0.
+            display_similarity = temporal.confidence if temporal.confirmed else decision.similarity
 
             results.append({
                 "track_id": track_id,
                 "student_id": temporal.student_id or decision.student_id,
                 "name": temporal.name or decision.name,
-                "similarity": round(float(temporal.confidence), 4),
+                "similarity": round(float(display_similarity), 4),
                 "status": status,
                 "confidence": "HIGH" if status == "PRESENT" else ("MEDIUM" if decision.state is MatchState.LOW_CONFIDENCE else "LOW"),
                 "verification": verification,
