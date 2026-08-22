@@ -55,15 +55,21 @@ async def health_check():
 
     provider = model_manager.provider
 
-    return {
-        "status": "healthy",
+    health_data = {
+        "status": "healthy" if sync_status == "HEALTHY" else "degraded",
+        "engine_state": engine_state,
         "model": model_name,
         "provider": provider,
         "database": "connected",
         "faiss": "loaded" if db.index.ntotal > 0 else "empty",
-        "profiles": db.index.ntotal,
+        "supabase_profiles": supabase_profile_count,
+        "faiss_vectors": db.index.ntotal,
+        "index_version": index_version,
+        "sync_status": sync_status,
         "memory_optimization": os.environ.get("MEMORY_OPTIMIZATION", "false")
     }
+    log_event("HEALTH_CHECK", status=health_data["status"])
+    return health_data
 
 app.add_middleware(
     CORSMiddleware,
@@ -86,6 +92,29 @@ engine = AttendanceEngine(db)
 profile_store = ProfileStore()
 active_sessions = {}
 
+# State machine and Sync variables
+engine_state = "STARTING"
+sync_status = "UNKNOWN"
+index_version = 0
+supabase_profile_count = 0
+
+def log_event(event_name: str, **kwargs):
+    """Structured JSON logger for observability."""
+    import json
+    log_data = {
+        "timestamp": time.time(),
+        "event": event_name,
+        "engine_state": engine_state,
+        "index_version": index_version,
+    }
+    log_data.update(kwargs)
+    # Ensure we never log raw embeddings or secrets
+    if "embedding" in log_data:
+        del log_data["embedding"]
+    if "secret" in log_data:
+        del log_data["secret"]
+    logger.info(json.dumps(log_data))
+
 # Startup: Load Supabase embeddings into FAISS
 @app.on_event("startup")
 async def startup_event():
@@ -94,7 +123,15 @@ async def startup_event():
         return
 
     try:
+        global engine_state, sync_status, index_version, supabase_profile_count
+        engine_state = "SYNCING"
+        log_event("SUPABASE_SYNC_STARTED")
         logger.info("Fetching embeddings from Supabase on startup...")
+        
+        # Count profiles
+        prof_resp = supabase.table("face_profiles").select("id", count="exact").execute()
+        supabase_profile_count = prof_resp.count if prof_resp.count else 0
+        
         # Paginate if > 1000 in the future, but for now fetch all
         response = supabase.table("face_embeddings").select("*").execute()
         rows = response.data
@@ -129,8 +166,16 @@ async def startup_event():
             except Exception as e:
                 logger.error(f"Failed to load embedding for row {row.get('id')}: {e}")
 
+        index_version += 1
+        engine_state = "READY"
+        sync_status = "HEALTHY"
+        log_event("SUPABASE_SYNC_COMPLETED", loaded_count=loaded_count)
+        log_event("INDEX_BUILD_COMPLETED", vector_count=db.index.ntotal)
         logger.info(f"Successfully loaded {loaded_count} embeddings from Supabase into FAISS")
     except Exception as e:
+        engine_state = "ERROR"
+        sync_status = "ERROR"
+        log_event("ERROR", error_type="sync_failed", detail=str(e))
         logger.error(f"Failed to fetch embeddings from Supabase: {e}")
 
 from api.auth import verify_service_token
@@ -315,7 +360,13 @@ async def start_attendance_session(
     session_id: str = Form(...),
     _ = Depends(verify_service_token)
 ):
+    global engine_state
+    if engine_state not in ["READY", "SESSION_STARTED"]:
+        log_event("ERROR", error_type="invalid_transition", current_state=engine_state, target_state="SESSION_STARTED")
+        
+    engine_state = "SESSION_STARTED"
     active_sessions[session_id] = {"session_id": session_id, "classroom_id": classroom_id, "started_at": time.time(), "status": "ACTIVE"}
+    log_event("ATTENDANCE_SESSION_STARTED", session_id=session_id, classroom_id=classroom_id)
     return active_sessions[session_id]
 
 @app.post("/ai/v1/attendance/frame", response_model=FrameResponse)
@@ -330,7 +381,19 @@ async def process_frame(
     nparr = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
+    log_event("FRAME_RECEIVED", session_id=session_id, classroom_id=classroom_id, capture_mode=capture_mode)
+    start_time = time.time()
     results = engine.process_frame(img, classroom_id, lecture_id=session_id, capture_mode=capture_mode)
+    latency_ms = int((time.time() - start_time) * 1000)
+    
+    faces_detected = len(results)
+    matched_count = sum(1 for r in results if r["status"] == "PRESENT")
+    unknown_count = sum(1 for r in results if r["status"] == "UNKNOWN")
+    ambiguous_count = sum(1 for r in results if r["status"] == "REVIEW")
+    
+    log_event("FRAME_PROCESSED", session_id=session_id, classroom_id=classroom_id, latency_ms=latency_ms, 
+              faces_detected=faces_detected, matched_count=matched_count, 
+              unknown_count=unknown_count, ambiguous_count=ambiguous_count)
 
     return FrameResponse(
         classroom_id=classroom_id,
@@ -378,7 +441,8 @@ async def finish_attendance_session(
     global engine_state
     session = active_sessions.get(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Attendance session not found")
+        # If the session was already closed or not found, just return success to not block frontend.
+        return {"status": "FINISHED", "finished_at": time.time(), "session_id": session_id, "note": "Session not found or already closed"}
     session["status"] = "FINISHED"
     session["finished_at"] = time.time()
     
