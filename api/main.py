@@ -249,12 +249,12 @@ async def enroll_student(
                     vector_str = "[" + ",".join(str(x) for x in prototype) + "]"
 
                     # Check if profile exists for this specific classroom
-                    prof_resp = supabase.table("face_profiles").select("id").eq("student_id", canonical_student_id).eq("classroom_id", classroom_id).execute()
+                    prof_resp = supabase.table("face_profiles").select("id").eq("student_id", str(canonical_student_id)).eq("classroom_id", str(classroom_id)).execute()
                     if not prof_resp.data:
                         supabase.table("face_profiles").insert({
                             "id": profile_id,
-                            "student_id": canonical_student_id,
-                            "classroom_id": classroom_id,
+                            "student_id": str(canonical_student_id),
+                            "classroom_id": str(classroom_id),
                             "version": 1
                         }).execute()
                     else:
@@ -263,8 +263,8 @@ async def enroll_student(
                     # Upsert embedding
                     supabase.table("face_embeddings").upsert({
                         "profile_id": profile_id,
-                        "student_id": canonical_student_id,
-                        "classroom_id": classroom_id,
+                        "student_id": str(canonical_student_id),
+                        "classroom_id": str(classroom_id),
                         "embedding": vector_str,
                         "source": "centroid_enrollment",
                         "quality_score": accepted_samples
