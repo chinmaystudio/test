@@ -90,6 +90,16 @@ embedder = FaceEmbedder()
 batch_embedder = BatchFaceEmbedder()
 engine = AttendanceEngine(db)
 profile_store = ProfileStore()
+# ML proctoring (merged from ml-service/ on 2026-11-08): compact feature-vector
+# analysis under /v1/proctoring/* + /v1/model/*, readiness at /ready.
+# Auth is separate from the face API: X-Proctoring-Service-Key vs ML_SERVICE_API_KEY.
+from proctoring.api.inference import router as _proctoring_router
+from proctoring.api.model import router as _model_router
+from proctoring.api.health import router as _ml_health_router
+app.include_router(_proctoring_router)
+app.include_router(_model_router)
+app.include_router(_ml_health_router)
+
 active_sessions = {}
 
 # State machine and Sync variables
